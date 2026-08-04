@@ -67,8 +67,8 @@ export default function SettingsPage() {
 
           <div className="bg-white/10 p-5 rounded-2xl border border-white/20 space-y-2">
             <span className="bg-[#ccff00] text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">Step 2</span>
-            <p className="text-base font-black text-white">2. Connect inside Blotato</p>
-            <p className="text-purple-100 font-medium">Open your Blotato dashboard at <a href="https://app.blotato.com" target="_blank" rel="noreferrer" className="underline font-bold text-[#ccff00]">app.blotato.com</a> &gt; <strong>Accounts</strong> &gt; <strong>Add Instagram</strong>.</p>
+            <p className="text-base font-black text-white">2. Connect inside Blotato Dashboard</p>
+            <p className="text-purple-100 font-medium">Open your Blotato dashboard at <a href="https://my.blotato.com/login" target="_blank" rel="noreferrer" className="underline font-bold text-[#ccff00]">my.blotato.com/login</a> &gt; <strong>Accounts</strong> &gt; <strong>Add Instagram</strong>.</p>
           </div>
 
           <div className="bg-white/10 p-5 rounded-2xl border border-white/20 space-y-2">
@@ -87,7 +87,7 @@ export default function SettingsPage() {
             <ol className="list-decimal list-inside space-y-2 text-xs text-slate-200 font-medium leading-relaxed">
               <li>Open Instagram app on your phone &gt; Settings &gt; Account type &gt; <strong>Switch to Professional Account</strong> (Business or Creator).</li>
               <li>Link your Instagram Business Account to a <strong>Facebook Page</strong>.</li>
-              <li>Log in to Blotato at <a href="https://app.blotato.com" target="_blank" className="text-[#ccff00] underline font-bold">app.blotato.com</a> using your account.</li>
+              <li>Log in to Blotato at <a href="https://my.blotato.com/login" target="_blank" className="text-[#ccff00] underline font-bold">my.blotato.com/login</a> using your account.</li>
               <li>Click <strong>"Connect Social Account"</strong> &gt; Select <strong>Instagram</strong> &gt; Complete Facebook OAuth login popup.</li>
               <li>Return here to <strong>elan.social</strong> and click <strong>"Sync Accounts"</strong>!</li>
             </ol>
@@ -148,7 +148,7 @@ export default function SettingsPage() {
           </div>
 
           <a
-            href="https://app.blotato.com"
+            href="https://my.blotato.com/login"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-pink-600 hover:bg-pink-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-1.5"
@@ -191,7 +191,7 @@ export default function SettingsPage() {
 
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <a
-                href="https://app.blotato.com"
+                href="https://my.blotato.com/login"
                 target="_blank"
                 rel="noreferrer"
                 className="bg-pink-600 hover:bg-pink-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition-all inline-flex items-center gap-1.5"
