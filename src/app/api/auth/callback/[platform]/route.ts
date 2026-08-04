@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
-// GET /api/auth/callback/[platform]?code=xxx&clientId=xxx&account_id=xxx&username=xxx
+// GET /api/auth/callback/[platform]?code=xxx&clientId=xxx
 export async function GET(
   request: Request,
   { params }: { params: { platform: string } }
 ) {
   const { searchParams } = new URL(request.url);
   const platform = params.platform.toLowerCase();
-  const clientId = searchParams.get("clientId") || "default-client";
-  const code = searchParams.get("code");
+  const clientId = searchParams.get("clientId") || "client-1";
   const accountId = searchParams.get("account_id") || `acc_${platform}_${Date.now()}`;
-  const username = searchParams.get("username") || searchParams.get("handle") || `@client_${platform}`;
-  const accountName = searchParams.get("name") || username;
+  const username = searchParams.get("username") || `@${platform}_brand`;
+  const accountName = searchParams.get("name") || `${platform.toUpperCase()} Workspace Account`;
 
   try {
     if (supabaseAdmin) {
-      // Bind the authorized social account exclusively to this client workspace in Supabase
+      // Upsert into Supabase `social_accounts` table
       await supabaseAdmin.from("social_accounts").upsert(
         {
           client_id: clientId,
