@@ -337,7 +337,7 @@ export default function PostComposerPage() {
             activePlatform={activePreviewPlatform}
             clientName={selectedClient.name}
             clientHandle={`@${selectedClient.name.toLowerCase().replace(/[^a-z0-9]/g, "_")}`}
-            clientAvatar={selectedClient.avatar_url}
+            clientAvatar={selectedClient.avatar_url || selectedClient.logo}
           />
         </div>
       </div>
