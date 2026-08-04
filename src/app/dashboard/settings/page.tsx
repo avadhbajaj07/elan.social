@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Key, CheckCircle2, RefreshCw, Smartphone, ShieldCheck, Zap, Plus, ExternalLink, Globe } from "lucide-react";
+import { Key, CheckCircle2, RefreshCw, Smartphone, ShieldCheck, Zap, Plus, ExternalLink, Globe, HelpCircle, ArrowRight } from "lucide-react";
 
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState("blt_xf24o9kuR/K6NKt6wDQ+c1Snut78GOX41jiqMJO5P7U=");
   const [loading, setLoading] = useState(false);
   const [connectedAccounts, setConnectedAccounts] = useState<any[]>([]);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
+  const [showIGGuide, setShowIGGuide] = useState(false);
 
   const fetchAccounts = async () => {
     setLoading(true);
@@ -17,7 +18,7 @@ export default function SettingsPage() {
       const data = await res.json();
       if (data.success) {
         setConnectedAccounts(data.accounts || []);
-        setSyncStatus(`Successfully synced ${data.count || 0} connected accounts from Blotato!`);
+        setSyncStatus(`Successfully synced ${data.count || 0} connected account(s) from Blotato!`);
       } else {
         setSyncStatus(`Status: ${data.error || "Ready to connect accounts"}`);
       }
@@ -41,32 +42,57 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {/* 1. Step-by-Step Connection Instructions */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 sm:p-8 rounded-3xl shadow-xl space-y-4">
-        <div className="flex items-center gap-2">
-          <Zap className="w-5 h-5 text-[#ccff00]" />
-          <h2 className="text-xl font-black">How to Connect Your Social Media Channels</h2>
+      {/* 1. Step-by-Step Instagram & Social Connection Guide */}
+      <div className="bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white p-6 sm:p-8 rounded-3xl shadow-xl space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-[#ccff00]" />
+            <h2 className="text-xl font-black">How to Connect Instagram & Social Media</h2>
+          </div>
+          <button
+            onClick={() => setShowIGGuide(!showIGGuide)}
+            className="bg-white/20 hover:bg-white/30 text-white font-extrabold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-1.5"
+          >
+            <HelpCircle className="w-4 h-4 text-[#ccff00]" />
+            <span>{showIGGuide ? "Hide Guide" : "Instagram Connection Guide"}</span>
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-bold pt-2">
-          <div className="bg-white/10 p-4 rounded-2xl border border-white/20 space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-bold">
+          <div className="bg-white/10 p-5 rounded-2xl border border-white/20 space-y-2">
             <span className="bg-[#ccff00] text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">Step 1</span>
-            <p className="text-sm font-extrabold text-white">Enter Blotato API Key</p>
-            <p className="text-purple-100 font-medium">Your live Blotato API key is already configured for auto-publishing and analytics sync.</p>
+            <p className="text-base font-black text-white">1. Switch Instagram to Professional</p>
+            <p className="text-purple-100 font-medium">Meta requires your Instagram account to be a <strong>Business</strong> or <strong>Creator</strong> account linked to a Facebook Page.</p>
           </div>
 
-          <div className="bg-white/10 p-4 rounded-2xl border border-white/20 space-y-2">
+          <div className="bg-white/10 p-5 rounded-2xl border border-white/20 space-y-2">
             <span className="bg-[#ccff00] text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">Step 2</span>
-            <p className="text-sm font-extrabold text-white">Authorize Social Profiles</p>
-            <p className="text-purple-100 font-medium">Click "Connect New Social Channel" below to authorize your Instagram, TikTok, Facebook, or LinkedIn pages.</p>
+            <p className="text-base font-black text-white">2. Connect inside Blotato</p>
+            <p className="text-purple-100 font-medium">Open your Blotato dashboard at <a href="https://app.blotato.com" target="_blank" rel="noreferrer" className="underline font-bold text-[#ccff00]">app.blotato.com</a> &gt; <strong>Accounts</strong> &gt; <strong>Add Instagram</strong>.</p>
           </div>
 
-          <div className="bg-white/10 p-4 rounded-2xl border border-white/20 space-y-2">
+          <div className="bg-white/10 p-5 rounded-2xl border border-white/20 space-y-2">
             <span className="bg-[#ccff00] text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">Step 3</span>
-            <p className="text-sm font-extrabold text-white">Automated Auto-Publishing</p>
-            <p className="text-purple-100 font-medium">Once connected, elan.social handles automated multi-channel post publishing via daily cron jobs.</p>
+            <p className="text-base font-black text-white">3. Click "Sync Accounts"</p>
+            <p className="text-purple-100 font-medium">Once authorized in Blotato, click <strong>"Sync Accounts"</strong> below. Your Instagram profile will immediately show up in elan.social!</p>
           </div>
         </div>
+
+        {/* Detailed Instagram Connection Guide Toggleable */}
+        {showIGGuide && (
+          <div className="bg-slate-950 text-white p-6 rounded-2xl border border-purple-400 space-y-3 animate-in fade-in duration-200">
+            <h4 className="text-base font-black text-[#ccff00] flex items-center gap-2">
+              📷 Detailed Instagram Connection Steps
+            </h4>
+            <ol className="list-decimal list-inside space-y-2 text-xs text-slate-200 font-medium leading-relaxed">
+              <li>Open Instagram app on your phone &gt; Settings &gt; Account type &gt; <strong>Switch to Professional Account</strong> (Business or Creator).</li>
+              <li>Link your Instagram Business Account to a <strong>Facebook Page</strong>.</li>
+              <li>Log in to Blotato at <a href="https://app.blotato.com" target="_blank" className="text-[#ccff00] underline font-bold">app.blotato.com</a> using your account.</li>
+              <li>Click <strong>"Connect Social Account"</strong> &gt; Select <strong>Instagram</strong> &gt; Complete Facebook OAuth login popup.</li>
+              <li>Return here to <strong>elan.social</strong> and click <strong>"Sync Accounts"</strong>!</li>
+            </ol>
+          </div>
+        )}
       </div>
 
       {/* 2. Blotato REST API Key Configuration */}
@@ -81,7 +107,7 @@ export default function SettingsPage() {
             </p>
           </div>
           <span className="bg-emerald-100 text-emerald-800 text-xs font-black px-3 py-1 rounded-full uppercase flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Active
+            <CheckCircle2 className="w-3.5 h-3.5" /> Active Key
           </span>
         </div>
 
@@ -122,12 +148,12 @@ export default function SettingsPage() {
           </div>
 
           <a
-            href="https://backend.blotato.com/v2/users/me/accounts"
+            href="https://app.blotato.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-pink-600 hover:bg-pink-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow transition-all flex items-center gap-1.5"
+            className="bg-pink-600 hover:bg-pink-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-1.5"
           >
-            <Plus className="w-4 h-4" /> Connect Social Channel <ExternalLink className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" /> Connect Social Account in Blotato <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
 
@@ -152,20 +178,34 @@ export default function SettingsPage() {
           </div>
         ) : (
           /* Clean Empty State when no social accounts are linked yet */
-          <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-purple-100 text-purple-600 mx-auto flex items-center justify-center font-bold text-xl">
+          <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-4">
+            <div className="w-14 h-14 rounded-full bg-purple-100 text-purple-600 mx-auto flex items-center justify-center font-black text-2xl">
               📱
             </div>
-            <h4 className="text-base font-black text-slate-900">No Social Media Accounts Linked Yet</h4>
-            <p className="text-xs text-slate-500 font-bold max-w-md mx-auto">
-              Click the button below to authorize your Instagram, TikTok, Facebook, LinkedIn, or YouTube profiles via Blotato.
-            </p>
-            <button
-              onClick={fetchAccounts}
-              className="bg-slate-950 hover:bg-black text-[#ccff00] font-black text-xs px-5 py-2.5 rounded-xl shadow-md transition-all inline-flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" /> Check & Sync Connected Accounts
-            </button>
+            <div className="space-y-1">
+              <h4 className="text-base font-black text-slate-900">No Social Media Accounts Linked Yet</h4>
+              <p className="text-xs text-slate-500 font-bold max-w-md mx-auto">
+                Connect your Instagram Business, TikTok, Facebook Page, LinkedIn, or YouTube channel inside Blotato, then click Sync Accounts below.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <a
+                href="https://app.blotato.com"
+                target="_blank"
+                rel="noreferrer"
+                className="bg-pink-600 hover:bg-pink-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition-all inline-flex items-center gap-1.5"
+              >
+                1. Connect Instagram in Blotato <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <button
+                onClick={fetchAccounts}
+                className="bg-slate-950 hover:bg-black text-[#ccff00] font-black text-xs px-5 py-2.5 rounded-xl shadow transition-all inline-flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" /> 2. Sync Accounts to elan.social
+              </button>
+            </div>
           </div>
         )}
       </div>
