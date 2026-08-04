@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Colorful Gradient Backgrounds for elan.social */
+.bg-elan-hero {
+  background: linear-gradient(135deg, #18131f 0%, #2a1147 40%, #0f172a 100%);
+}
+
+.bg-elan-rainbow {
+  background: linear-gradient(90deg, #ff3366 0%, #ff6b35 25%, #f59e0b 50%, #10b981 75%, #3b82f6 100%);
+}
+
+.bg-elan-pink {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+}
+
+.bg-elan-lime {
+  background: #ccff00;
+  color: #0f172a;
+}
+
+.bg-elan-purple {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+}
+
+.bg-elan-blue {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+}
+
+.bg-elan-emerald {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+}
+
+.bg-elan-orange {
+  background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
+}
+
+/* Striped Background Graphics */
+.bg-elan-stripes-pink {
+  background: repeating-linear-gradient(
+    -45deg,
+    #ec4899,
+    #ec4899 14px,
+    #f43f5e 14px,
+    #f43f5e 28px
+  );
+}
+
+.bg-elan-stripes-lime {
+  background: repeating-linear-gradient(
+    -45deg,
+    #ccff00,
+    #ccff00 14px,
+    #e6ff66 14px,
+    #e6ff66 28px
+  );
+}
+
+/* Colorful Card Utilities */
+.elan-card-pink {
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  color: #ffffff;
+  box-shadow: 0 15px 35px -5px rgba(236, 72, 153, 0.35);
+}
+
+.elan-card-lime {
+  background: #ccff00;
+  color: #0f172a;
+  box-shadow: 0 15px 35px -5px rgba(204, 255, 0, 0.35);
+}
+
+.elan-card-purple {
+  background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
+  color: #ffffff;
+  box-shadow: 0 15px 35px -5px rgba(124, 58, 237, 0.35);
+}
+
+.elan-card-blue {
+  background: linear-gradient(135deg, #0284c7 0%, #075985 100%);
+  color: #ffffff;
+  box-shadow: 0 15px 35px -5px rgba(2, 132, 199, 0.35);
+}
+
+.elan-card-emerald {
+  background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+  color: #ffffff;
+  box-shadow: 0 15px 35px -5px rgba(16, 185, 129, 0.35);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
