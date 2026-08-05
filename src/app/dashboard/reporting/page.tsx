@@ -1,131 +1,160 @@
 "use client";
 
-import { FileText, Layers, Sparkles, BarChart2, Hash, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { FileText, Layers, Sparkles, BarChart2, Hash, ExternalLink, Printer, CheckCircle2 } from "lucide-react";
 
 export default function ReportingPage() {
+  const [accounts, setAccounts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/social-accounts", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.accounts)) {
+          setAccounts(data.accounts);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handlePrintReport = () => {
+    window.print();
+  };
+
   return (
     <div className="space-y-6 font-sans text-xs pb-12">
-      <div>
-        <h1 className="text-2xl font-black text-metricool-dark">Reporting</h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Turn your data into reports or dashboards ready to analyze, share, or present to your clients.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900">Executive Client Reports</h1>
+          <p className="text-xs text-slate-500 mt-1 font-bold">
+            Generate and export white-label social performance reports for your clients.
+          </p>
+        </div>
+
+        <button
+          onClick={handlePrintReport}
+          className="bg-slate-950 hover:bg-black text-[#ccff00] font-black text-xs px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-1.5"
+        >
+          <Printer className="w-4 h-4" /> Export PDF / Print Report
+        </button>
       </div>
 
       {/* Top Banner */}
-      <div className="bg-[#e8f0fe] p-6 rounded-2xl border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-[#e8f0fe] p-6 rounded-3xl border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-base font-bold text-slate-900">Your brand reporting workspace</h2>
-          <p className="text-xs text-slate-600">Connect social networks or switch brands to start generating PDF/PPT reports.</p>
+          <h2 className="text-base font-black text-slate-900">Connected Accounts in Report ({accounts.length})</h2>
+          <p className="text-xs text-slate-600 font-medium">
+            Live Blotato social channels included in executive client reporting.
+          </p>
         </div>
 
-        <button
-          onClick={() => alert("Connecting social networks...")}
-          className="bg-metricool-dark text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shrink-0"
+        <Link
+          href="/dashboard/clients"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow shrink-0"
         >
-          Connect social networks
-        </button>
+          Select Client Workspace →
+        </Link>
       </div>
 
-      {/* 4 Reporting Feature Cards matching Screenshot 2 */}
+      {/* Connected Accounts List */}
+      {accounts.length > 0 && (
+        <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-sm space-y-3">
+          <h3 className="font-black text-slate-900 text-xs">Included Social Channels:</h3>
+          <div className="flex flex-wrap gap-2">
+            {accounts.map((acc, idx) => (
+              <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black flex items-center gap-2">
+                <span>{acc.username || acc.account_name}</span>
+                <span className="text-[10px] text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full capitalize">{acc.platform}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 4 Reporting Feature Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Card 1: Reports */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+        {/* Card 1: Executive PDF Reports */}
+        <div className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-2">
-            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+            <div className="w-9 h-9 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <FileText className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-bold text-slate-900">Reports</h3>
+            <h3 className="text-sm font-black text-slate-900">Executive PDF Reports</h3>
             <p className="text-slate-500 text-xs leading-relaxed">
-              Generate pre-designed reports with data from the social networks you choose for a specific period. Customize them with your logo and export as PDF or PPT.
+              Export professional white-label reports with channel activity and performance metrics.
             </p>
           </div>
 
           <button
-            onClick={() => alert("Generating PDF Report...")}
-            className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs border border-slate-300"
+            onClick={handlePrintReport}
+            className="w-full py-2.5 bg-slate-950 hover:bg-black text-[#ccff00] font-black rounded-xl text-xs transition-all flex items-center justify-center gap-1"
           >
-            Create report
+            <Printer className="w-3.5 h-3.5" /> Export PDF Report
           </button>
         </div>
 
-        {/* Card 2: Campaign dashboards */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+        {/* Card 2: Campaign Dashboards */}
+        <div className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-2">
-            <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+            <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
               <Layers className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-bold text-slate-900">Campaign dashboards</h3>
+            <h3 className="text-sm font-black text-slate-900">Campaign Workspaces</h3>
             <p className="text-slate-500 text-xs leading-relaxed">
-              Group content by campaign or topic, manually or automatically. Analyze their combined performance to measure the real impact.
+              Group content by client campaigns and evaluate reach across social channels.
             </p>
           </div>
 
-          <button
-            onClick={() => alert("Upgrade your plan for Campaign Dashboards")}
-            className="w-full py-2 bg-metricool-lime text-metricool-dark font-extrabold rounded-xl text-xs shadow-sm"
+          <Link
+            href="/dashboard/clients"
+            className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black rounded-xl text-xs border border-slate-300 text-center block"
           >
-            Upgrade your plan
-          </button>
+            Client Workspaces
+          </Link>
         </div>
 
-        {/* Card 3: Metricool Studio */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+        {/* Card 3: Client Portal */}
+        <div className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-2">
-            <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+            <div className="w-9 h-9 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
               <Sparkles className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-bold text-slate-900">Metricool Studio</h3>
+            <h3 className="text-sm font-black text-slate-900">Client Portal Links</h3>
             <p className="text-slate-500 text-xs leading-relaxed">
-              Create custom views without technical skills. Choose which charts, metrics, and insights to display for one brand or multiple.
+              Generate 1-click shareable report portals for your clients.
             </p>
           </div>
 
-          <button
-            onClick={() => alert("Upgrade your plan for Metricool Studio")}
-            className="w-full py-2 bg-metricool-lime text-metricool-dark font-extrabold rounded-xl text-xs shadow-sm"
+          <Link
+            href="/dashboard/clients"
+            className="w-full py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-black rounded-xl text-xs border border-purple-200 text-center block"
           >
-            Upgrade your plan
-          </button>
+            Copy Client Portal Links
+          </Link>
         </div>
 
-        {/* Card 4: Looker Studio */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+        {/* Card 4: Blotato REST API */}
+        <div className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-2">
-            <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+            <div className="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
               <BarChart2 className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-bold text-slate-900">Looker Studio</h3>
+            <h3 className="text-sm font-black text-slate-900">Blotato API Logs</h3>
             <p className="text-slate-500 text-xs leading-relaxed">
-              Connect your data to Looker Studio and build dashboards with complete freedom in design, structure, and visualization.
+              Inspect raw API request logs and response submissions in Blotato API dashboard.
             </p>
           </div>
 
-          <button
-            onClick={() => alert("Connecting to Looker Studio...")}
-            className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs border border-slate-300"
+          <a
+            href="https://my.blotato.com/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black rounded-xl text-xs border border-slate-300 text-center flex items-center justify-center gap-1"
           >
-            Connect Looker Studio
-          </button>
+            Blotato Dashboard <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
-      </div>
-
-      {/* Hashtag Tracker Box matching Screenshot 2 */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div className="flex items-center gap-2">
-          <Hash className="w-5 h-5 text-purple-600" />
-          <h3 className="text-sm font-bold text-slate-900">Hashtag Tracker</h3>
-        </div>
-        <p className="text-xs text-slate-600">
-          Monitor and analyze the use of a hashtag on X or Instagram and get data on its performance.
-        </p>
-
-        <button
-          onClick={() => alert("Hashtag tracker details...")}
-          className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 hover:border-slate-800"
-        >
-          More information
-        </button>
       </div>
     </div>
   );

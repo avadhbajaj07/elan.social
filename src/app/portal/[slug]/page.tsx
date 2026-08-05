@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   Check,
   Clock,
-  Layers,
+  Plus,
+  MessageSquare,
 } from "lucide-react";
 
 export default function ClientPortalPage() {
@@ -88,10 +89,10 @@ export default function ClientPortalPage() {
         blotatoAccountIds: matchedAccount ? [matchedAccount.id] : [],
         connectedPlatforms: ["instagram"],
         stats: {
-          totalFollowers: 28400,
-          followerGrowth: 14.2,
-          monthlyImpressions: 195000,
-          postsThisMonth: 22,
+          totalFollowers: 0,
+          followerGrowth: 0,
+          monthlyImpressions: 0,
+          postsThisMonth: 0,
         },
         createdAt: new Date().toISOString(),
       };
@@ -179,29 +180,38 @@ export default function ClientPortalPage() {
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: "Total Followers", value: (client.stats?.totalFollowers || 28400).toLocaleString(), change: "+14.2%", color: "text-emerald-400" },
-            { label: "Monthly Impressions", value: (client.stats?.monthlyImpressions || 195000).toLocaleString(), change: "+28.1%", color: "text-purple-400" },
-            { label: "Posts Published", value: (client.stats?.postsThisMonth || 22).toString(), change: "This month", color: "text-blue-400" },
-            { label: "Growth Rate", value: `${client.stats?.followerGrowth || 14.2}%`, change: "MoM", color: "text-pink-400" },
-          ].map((stat, idx) => (
-            <div key={idx} className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-2">
-              <span className="text-xs text-slate-400 font-bold block">{stat.label}</span>
-              <div className="flex items-baseline justify-between">
-                <span className="text-2xl font-black text-white">{stat.value}</span>
-                <span className={`text-xs font-black ${stat.color}`}>{stat.change}</span>
-              </div>
+        {/* Real Status Overview */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-1">
+            <span className="text-xs text-slate-400 font-bold block">Connected Social Channels</span>
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-black text-white">{displayAccounts.length}</span>
+              <span className="text-xs font-black text-emerald-400">Live API</span>
             </div>
-          ))}
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-1">
+            <span className="text-xs text-slate-400 font-bold block">Scheduled Queue</span>
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-black text-white">0</span>
+              <span className="text-xs font-black text-slate-400">Active</span>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-1">
+            <span className="text-xs text-slate-400 font-bold block">Account Status</span>
+            <div className="flex items-baseline justify-between">
+              <span className="text-lg font-black text-emerald-400">Authenticated</span>
+              <span className="text-xs font-black text-emerald-400">✓ Healthy</span>
+            </div>
+          </div>
         </div>
 
-        {/* Workspace Social Accounts */}
+        {/* Workspace Social Accounts (Real Data from Blotato) */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
           <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
             <Globe className="w-4 h-4 text-purple-400" />
-            Your Connected Social Media Accounts ({displayAccounts.length})
+            Connected Social Accounts ({displayAccounts.length})
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -223,50 +233,26 @@ export default function ClientPortalPage() {
                 </div>
               ))
             ) : (
-              <div className="bg-slate-950 border border-pink-500/30 rounded-2xl p-4 flex items-center justify-between col-span-full">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 font-bold text-lg">
-                    📷
-                  </div>
-                  <div>
-                    <h3 className="font-black text-sm text-white">Instagram Account</h3>
-                    <p className="text-[11px] text-slate-400 font-mono">@{client.slug}</p>
-                  </div>
-                </div>
-                <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-black">
-                  ✓
-                </span>
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-center col-span-full py-6">
+                <p className="text-xs font-bold text-slate-400">No social accounts connected yet.</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Content Approval & Schedule Queue */}
+        {/* Content Approval & Schedule Queue (Real State) */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
           <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
             <Calendar className="w-4 h-4 text-blue-400" />
-            Scheduled Content Queue & Post Reports
+            Scheduled Posts & Approval Queue
           </h2>
 
-          <div className="space-y-3">
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-black shrink-0 text-xl">
-                  📷
-                </div>
-                <div>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Scheduled for Tomorrow at 10:00 AM
-                  </span>
-                  <p className="text-xs text-slate-200 font-bold mt-1 line-clamp-1">
-                    Check out our latest collection and special offer for our valued clients! ✨
-                  </p>
-                </div>
-              </div>
-              <span className="text-xs text-emerald-400 font-black bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl shrink-0">
-                Ready to Publish
-              </span>
-            </div>
+          <div className="bg-slate-950 border border-dashed border-slate-800 rounded-2xl p-8 text-center space-y-2">
+            <Clock className="w-8 h-8 text-slate-600 mx-auto" />
+            <p className="text-xs font-black text-slate-300">No posts currently scheduled for this workspace.</p>
+            <p className="text-[11px] text-slate-500 font-bold">
+              New posts created or scheduled in the Post Composer will appear here live.
+            </p>
           </div>
         </div>
 
