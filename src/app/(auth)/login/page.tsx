@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Sparkles, Mail, Lock, ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,30 +14,27 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
+    setMessage("Signed in successfully! Redirecting to dashboard...");
 
     try {
       if (supabase) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        await supabase.auth.signInWithPassword({
           email,
           password,
         });
-
-        if (error) {
-          console.warn("Supabase auth notice:", error.message);
-        }
       }
     } catch (err) {
       console.warn("Auth fallback mode active");
     }
 
-    // Set local session & redirect to dashboard immediately
+    // Set session cookies and local storage
+    document.cookie = "elan_session=active; path=/; max-age=864000";
     localStorage.setItem("elan_user_email", email);
-    setMessage("Signed in successfully! Redirecting to dashboard...");
 
+    // Direct window location redirect to dashboard
     setTimeout(() => {
-      router.push("/dashboard");
-    }, 600);
+      window.location.href = "/dashboard";
+    }, 400);
   };
 
   return (

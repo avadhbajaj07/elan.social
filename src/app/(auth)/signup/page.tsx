@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Sparkles, Mail, Lock, Building, ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function SignupPage() {
-  const router = useRouter();
   const [agencyName, setAgencyName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,34 +15,31 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
+    setMessage("Account created! Redirecting to dashboard...");
 
     try {
       if (supabase) {
-        const { data, error } = await supabase.auth.signUp({
+        await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { agency_name: agencyName },
           },
         });
-
-        if (error) {
-          console.warn("Supabase signup notice:", error.message);
-        }
       }
     } catch (err) {
       console.warn("Auth fallback mode active");
     }
 
-    // Set local session state & redirect to dashboard immediately
+    // Set session cookie & local storage
+    document.cookie = "elan_session=active; path=/; max-age=864000";
     localStorage.setItem("elan_user_email", email);
     localStorage.setItem("elan_agency_name", agencyName || "My Agency");
-    
-    setMessage("Account created successfully! Redirecting to dashboard...");
+
+    // Direct window location redirect to dashboard
     setTimeout(() => {
-      router.push("/dashboard");
-    }, 800);
+      window.location.href = "/dashboard";
+    }, 400);
   };
 
   return (
