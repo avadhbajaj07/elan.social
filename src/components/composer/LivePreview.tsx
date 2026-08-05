@@ -4,6 +4,10 @@ import { useState } from "react";
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Share2, ThumbsUp, MapPin, Globe, Star } from "lucide-react";
 import { SocialPlatformKey } from "./PlatformSelector";
 
+export type ImageAspect = "1:1" | "4:5" | "1.91:1" | "original";
+export type ImageFit = "cover" | "contain";
+export type ImagePosition = "center" | "top" | "bottom";
+
 export interface LivePreviewProps {
   caption: string;
   hashtags: string[];
@@ -12,6 +16,9 @@ export interface LivePreviewProps {
   clientName: string;
   clientHandle: string;
   clientAvatar: string;
+  imageAspect?: ImageAspect;
+  imageFit?: ImageFit;
+  imagePosition?: ImagePosition;
 }
 
 export default function LivePreview({
@@ -22,6 +29,9 @@ export default function LivePreview({
   clientName,
   clientHandle,
   clientAvatar,
+  imageAspect = "1:1",
+  imageFit = "cover",
+  imagePosition = "center",
 }: LivePreviewProps) {
   const fullCaption = `${caption} ${hashtags.map((h) => (h.startsWith("#") ? h : `#${h}`)).join(" ")}`;
   const displayMedia = mediaUrl || "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&auto=format&fit=crop&q=80";
@@ -47,7 +57,7 @@ export default function LivePreview({
         </div>
 
         {/* Platform Specific Renderer */}
-        <div className="py-3 max-h-[460px] overflow-y-auto pr-1">
+        <div className="py-3 max-h-[520px] overflow-y-auto pr-1">
           {activePlatform === "instagram" && (
             <InstagramPreview
               clientName={clientName}
@@ -55,6 +65,9 @@ export default function LivePreview({
               avatar={clientAvatar}
               mediaUrl={displayMedia}
               caption={fullCaption}
+              aspect={imageAspect}
+              fit={imageFit}
+              position={imagePosition}
             />
           )}
 
@@ -64,6 +77,8 @@ export default function LivePreview({
               avatar={clientAvatar}
               mediaUrl={displayMedia}
               caption={fullCaption}
+              fit={imageFit}
+              position={imagePosition}
             />
           )}
 
@@ -73,6 +88,8 @@ export default function LivePreview({
               avatar={clientAvatar}
               mediaUrl={displayMedia}
               caption={fullCaption}
+              fit={imageFit}
+              position={imagePosition}
             />
           )}
 
@@ -82,6 +99,8 @@ export default function LivePreview({
               avatar={clientAvatar}
               mediaUrl={displayMedia}
               caption={fullCaption}
+              fit={imageFit}
+              position={imagePosition}
             />
           )}
 
@@ -91,10 +110,12 @@ export default function LivePreview({
               avatar={clientAvatar}
               mediaUrl={displayMedia}
               caption={fullCaption}
+              fit={imageFit}
+              position={imagePosition}
             />
           )}
 
-          {["youtube", "threads", "bluesky"].includes(activePlatform) && (
+          {["youtube", "threads", "bluesky", "pinterest", "twitter"].includes(activePlatform) && (
             <GenericPreview
               platform={activePlatform}
               clientName={clientName}
@@ -102,6 +123,8 @@ export default function LivePreview({
               avatar={clientAvatar}
               mediaUrl={displayMedia}
               caption={fullCaption}
+              fit={imageFit}
+              position={imagePosition}
             />
           )}
         </div>
@@ -111,7 +134,37 @@ export default function LivePreview({
 }
 
 // 1. Instagram Post Preview Component
-function InstagramPreview({ clientName, clientHandle, avatar, mediaUrl, caption }: any) {
+function InstagramPreview({
+  clientName,
+  clientHandle,
+  avatar,
+  mediaUrl,
+  caption,
+  aspect = "1:1",
+  fit = "cover",
+  position = "center",
+}: {
+  clientName: string;
+  clientHandle: string;
+  avatar: string;
+  mediaUrl: string;
+  caption: string;
+  aspect?: ImageAspect;
+  fit?: ImageFit;
+  position?: ImagePosition;
+}) {
+  const aspectClass =
+    aspect === "4:5"
+      ? "aspect-[4/5]"
+      : aspect === "1.91:1"
+      ? "aspect-[1.91/1]"
+      : aspect === "original"
+      ? "min-h-[220px] max-h-[420px]"
+      : "aspect-square";
+
+  const fitClass = fit === "contain" ? "object-contain" : "object-cover";
+  const posClass = position === "top" ? "object-top" : position === "bottom" ? "object-bottom" : "object-center";
+
   return (
     <div className="space-y-3 bg-black text-white rounded-xl overflow-hidden p-2">
       {/* IG Header */}
@@ -126,9 +179,20 @@ function InstagramPreview({ clientName, clientHandle, avatar, mediaUrl, caption 
         <MoreHorizontal className="w-4 h-4 text-slate-400" />
       </div>
 
-      {/* Media Image */}
-      <div className="relative aspect-square w-full bg-slate-900 overflow-hidden rounded-lg">
-        <img src={mediaUrl} alt="Post content" className="w-full h-full object-cover" />
+      {/* Media Image Frame */}
+      <div className={`relative w-full bg-slate-900 overflow-hidden rounded-lg ${aspectClass}`}>
+        {/* Background blur for letterboxing if contained */}
+        {fit === "contain" && (
+          <div
+            className="absolute inset-0 bg-cover bg-center filter blur-md opacity-30 scale-110"
+            style={{ backgroundImage: `url(${mediaUrl})` }}
+          />
+        )}
+        <img
+          src={mediaUrl}
+          alt="Post content"
+          className={`relative z-10 w-full h-full ${fitClass} ${posClass}`}
+        />
       </div>
 
       {/* Action Icons */}
@@ -155,16 +219,21 @@ function InstagramPreview({ clientName, clientHandle, avatar, mediaUrl, caption 
 }
 
 // 2. TikTok Reel Preview Component
-function TikTokPreview({ clientHandle, avatar, mediaUrl, caption }: any) {
+function TikTokPreview({ clientHandle, avatar, mediaUrl, caption, fit = "cover", position = "center" }: any) {
+  const fitClass = fit === "contain" ? "object-contain" : "object-cover";
+  const posClass = position === "top" ? "object-top" : position === "bottom" ? "object-bottom" : "object-center";
+
   return (
     <div className="relative aspect-[9/16] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-800">
-      <img src={mediaUrl} alt="TikTok video" className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/90 p-3 flex flex-col justify-between">
+      {fit === "contain" && (
+        <div className="absolute inset-0 bg-cover bg-center filter blur-md opacity-30 scale-110" style={{ backgroundImage: `url(${mediaUrl})` }} />
+      )}
+      <img src={mediaUrl} alt="TikTok video" className={`relative z-10 w-full h-full ${fitClass} ${posClass}`} />
+      <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/20 via-transparent to-black/90 p-3 flex flex-col justify-between">
         <div className="flex justify-between items-center text-xs font-bold text-white">
           <span>Following | <strong className="text-white">For You</strong></span>
         </div>
 
-        {/* Right TikTok Action Sidebar */}
         <div className="flex flex-col items-end gap-3 text-white">
           <div className="relative">
             <img src={avatar} className="w-9 h-9 rounded-full border-2 border-white object-cover" />
@@ -184,7 +253,6 @@ function TikTokPreview({ clientHandle, avatar, mediaUrl, caption }: any) {
           </div>
         </div>
 
-        {/* Bottom Caption Overlay */}
         <div className="text-white space-y-1 pr-12">
           <p className="font-bold text-xs">{clientHandle}</p>
           <p className="text-[10px] text-slate-200 line-clamp-2">{caption}</p>
@@ -195,7 +263,10 @@ function TikTokPreview({ clientHandle, avatar, mediaUrl, caption }: any) {
 }
 
 // 3. LinkedIn Post Preview Component
-function LinkedInPreview({ clientName, avatar, mediaUrl, caption }: any) {
+function LinkedInPreview({ clientName, avatar, mediaUrl, caption, fit = "cover", position = "center" }: any) {
+  const fitClass = fit === "contain" ? "object-contain" : "object-cover";
+  const posClass = position === "top" ? "object-top" : position === "bottom" ? "object-bottom" : "object-center";
+
   return (
     <div className="space-y-2.5 bg-slate-900 border border-slate-800 text-white rounded-xl p-3 text-xs">
       <div className="flex items-center gap-2">
@@ -208,8 +279,11 @@ function LinkedInPreview({ clientName, avatar, mediaUrl, caption }: any) {
 
       <p className="text-slate-200 text-[11px] leading-relaxed whitespace-pre-line">{caption}</p>
 
-      <div className="rounded-lg overflow-hidden border border-slate-800">
-        <img src={mediaUrl} className="w-full h-44 object-cover" />
+      <div className="relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
+        {fit === "contain" && (
+          <div className="absolute inset-0 bg-cover bg-center filter blur-md opacity-30" style={{ backgroundImage: `url(${mediaUrl})` }} />
+        )}
+        <img src={mediaUrl} className={`relative z-10 w-full h-48 ${fitClass} ${posClass}`} />
       </div>
 
       <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-slate-400 text-[11px]">
@@ -228,7 +302,10 @@ function LinkedInPreview({ clientName, avatar, mediaUrl, caption }: any) {
 }
 
 // 4. Facebook Post Preview Component
-function FacebookPreview({ clientName, avatar, mediaUrl, caption }: any) {
+function FacebookPreview({ clientName, avatar, mediaUrl, caption, fit = "cover", position = "center" }: any) {
+  const fitClass = fit === "contain" ? "object-contain" : "object-cover";
+  const posClass = position === "top" ? "object-top" : position === "bottom" ? "object-bottom" : "object-center";
+
   return (
     <div className="space-y-2.5 bg-slate-900 border border-slate-800 text-white rounded-xl p-3 text-xs">
       <div className="flex items-center gap-2">
@@ -241,8 +318,11 @@ function FacebookPreview({ clientName, avatar, mediaUrl, caption }: any) {
 
       <p className="text-slate-200 text-[11px] leading-relaxed">{caption}</p>
 
-      <div className="rounded-lg overflow-hidden border border-slate-800">
-        <img src={mediaUrl} className="w-full h-44 object-cover" />
+      <div className="relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
+        {fit === "contain" && (
+          <div className="absolute inset-0 bg-cover bg-center filter blur-md opacity-30" style={{ backgroundImage: `url(${mediaUrl})` }} />
+        )}
+        <img src={mediaUrl} className={`relative z-10 w-full h-48 ${fitClass} ${posClass}`} />
       </div>
 
       <div className="flex items-center justify-around pt-2 border-t border-slate-800 text-slate-400 text-[11px]">
@@ -255,7 +335,10 @@ function FacebookPreview({ clientName, avatar, mediaUrl, caption }: any) {
 }
 
 // 5. Google Business Profile (GMB) Update Preview Component
-function GMBPreview({ clientName, avatar, mediaUrl, caption }: any) {
+function GMBPreview({ clientName, avatar, mediaUrl, caption, fit = "cover", position = "center" }: any) {
+  const fitClass = fit === "contain" ? "object-contain" : "object-cover";
+  const posClass = position === "top" ? "object-top" : position === "bottom" ? "object-bottom" : "object-center";
+
   return (
     <div className="space-y-2.5 bg-slate-900 border border-slate-800 text-white rounded-xl p-3 text-xs">
       <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -268,8 +351,11 @@ function GMBPreview({ clientName, avatar, mediaUrl, caption }: any) {
         </div>
       </div>
 
-      <div className="rounded-lg overflow-hidden border border-slate-800">
-        <img src={mediaUrl} className="w-full h-40 object-cover" />
+      <div className="relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
+        {fit === "contain" && (
+          <div className="absolute inset-0 bg-cover bg-center filter blur-md opacity-30" style={{ backgroundImage: `url(${mediaUrl})` }} />
+        )}
+        <img src={mediaUrl} className={`relative z-10 w-full h-40 ${fitClass} ${posClass}`} />
       </div>
 
       <p className="text-slate-300 text-[11px] leading-relaxed">{caption}</p>
@@ -283,7 +369,10 @@ function GMBPreview({ clientName, avatar, mediaUrl, caption }: any) {
   );
 }
 
-function GenericPreview({ platform, clientName, clientHandle, avatar, mediaUrl, caption }: any) {
+function GenericPreview({ platform, clientName, clientHandle, avatar, mediaUrl, caption, fit = "cover", position = "center" }: any) {
+  const fitClass = fit === "contain" ? "object-contain" : "object-cover";
+  const posClass = position === "top" ? "object-top" : position === "bottom" ? "object-bottom" : "object-center";
+
   return (
     <div className="space-y-2.5 bg-slate-900 border border-slate-800 text-white rounded-xl p-3 text-xs">
       <div className="flex items-center gap-2">
@@ -296,8 +385,11 @@ function GenericPreview({ platform, clientName, clientHandle, avatar, mediaUrl, 
 
       <p className="text-slate-300 text-[11px] leading-relaxed">{caption}</p>
 
-      <div className="rounded-lg overflow-hidden border border-slate-800">
-        <img src={mediaUrl} className="w-full h-44 object-cover" />
+      <div className="relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
+        {fit === "contain" && (
+          <div className="absolute inset-0 bg-cover bg-center filter blur-md opacity-30" style={{ backgroundImage: `url(${mediaUrl})` }} />
+        )}
+        <img src={mediaUrl} className={`relative z-10 w-full h-44 ${fitClass} ${posClass}`} />
       </div>
     </div>
   );

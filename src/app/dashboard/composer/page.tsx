@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import LivePreview from "@/components/composer/LivePreview";
+import LivePreview, { ImageAspect, ImageFit, ImagePosition } from "@/components/composer/LivePreview";
 import { ClientProfile, BlotatoAccount, loadClientsFromStorage } from "@/lib/mockData";
 import {
   Send, Clock, Image as ImageIcon, Hash, CheckCircle2, Calendar as CalendarIcon,
   Loader2, AlertCircle, Check, RefreshCw, Plus, Trash2,
   GalleryHorizontal, Film, LayoutTemplate, MoveUp, MoveDown,
-  MessageSquare, Zap, ChevronDown, ChevronUp, Info,
+  MessageSquare, Zap, ChevronDown, ChevronUp, Info, Crop, Maximize, Sliders,
 } from "lucide-react";
 
 // ─── Platform definitions ───────────────────────────────────────────────────
@@ -44,6 +44,11 @@ export default function PostComposerPage() {
   const [newHashtag, setNewHashtag] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
   const [carouselUrls, setCarouselUrls] = useState<string[]>(["", ""]);
+
+  // Image Aspect Ratio & Framing Adjustments
+  const [imageAspect, setImageAspect] = useState<ImageAspect>("4:5"); // Default to 4:5 Portrait (Instagram standard)
+  const [imageFit, setImageFit] = useState<ImageFit>("contain"); // Default to contain to avoid cutting top text!
+  const [imagePosition, setImagePosition] = useState<ImagePosition>("top"); // Default to top align
 
   // Platform-specific
   const [firstComment, setFirstComment] = useState(""); // Instagram first comment
@@ -428,6 +433,103 @@ export default function PostComposerPage() {
               </div>
             )}
 
+            {/* Image Aspect Ratio & Framing Adjustments (Instagram Sizing & Crop Fix) */}
+            {(postType === "single" || postType === "carousel") && (
+              <div className="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                    <Crop className="w-3.5 h-3.5 text-purple-600" /> Image Size, Aspect Ratio & Framing (Crop Fix)
+                  </label>
+                  <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                    Prevents Top Text Cut
+                  </span>
+                </div>
+
+                {/* Aspect Ratio Selector */}
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-600">1. Instagram Aspect Ratio:</span>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[
+                      { aspect: "4:5", label: "4:5 Portrait", desc: "Instagram Default" },
+                      { aspect: "1:1", label: "1:1 Square", desc: "Classic Feed" },
+                      { aspect: "1.91:1", label: "1.91:1 Landscape", desc: "Wide Banner" },
+                      { aspect: "original", label: "Fit Original", desc: "Full Uncropped" },
+                    ].map(({ aspect, label, desc }) => (
+                      <button
+                        key={aspect}
+                        type="button"
+                        onClick={() => setImageAspect(aspect as any)}
+                        className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-[10px] font-black transition-all ${
+                          imageAspect === aspect
+                            ? "border-purple-600 bg-purple-100 text-purple-900 shadow-sm"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                        }`}
+                      >
+                        <span>{label}</span>
+                        <span className="text-[9px] font-normal opacity-75">{desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Fit vs Cover Mode & Position */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold text-slate-600">2. Fit Mode:</span>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setImageFit("contain")}
+                        className={`flex-1 py-1.5 rounded-lg border-2 text-[10px] font-black transition-all ${
+                          imageFit === "contain"
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                            : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        ✓ Fit Full (No Crop)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setImageFit("cover")}
+                        className={`flex-1 py-1.5 rounded-lg border-2 text-[10px] font-black transition-all ${
+                          imageFit === "cover"
+                            ? "border-purple-500 bg-purple-50 text-purple-800"
+                            : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        Fill Box (Crop)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Alignment Position Focus */}
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold text-slate-600">3. Crop Focus Alignment:</span>
+                    <div className="grid grid-cols-3 gap-1">
+                      {[
+                        { pos: "top", label: "Top (Header)" },
+                        { pos: "center", label: "Center" },
+                        { pos: "bottom", label: "Bottom" },
+                      ].map(({ pos, label }) => (
+                        <button
+                          key={pos}
+                          type="button"
+                          onClick={() => setImagePosition(pos as any)}
+                          className={`py-1.5 rounded-lg border-2 text-[9px] font-black transition-all truncate px-1 ${
+                            imagePosition === pos
+                              ? "border-blue-500 bg-blue-50 text-blue-800"
+                              : "border-slate-200 bg-white text-slate-600"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ── Advanced / Platform-Specific Features ── */}
             <div className="border-t border-slate-100 pt-4">
               <button type="button" onClick={() => setShowAdvanced(!showAdvanced)}
@@ -595,6 +697,9 @@ export default function PostComposerPage() {
             clientName={selectedClient?.name || "Your Client"}
             clientHandle={`@${(selectedClient?.name || "client").toLowerCase().replace(/[^a-z0-9]/g, "_")}`}
             clientAvatar={selectedClient?.avatar_url || selectedClient?.logo || ""}
+            imageAspect={imageAspect}
+            imageFit={imageFit}
+            imagePosition={imagePosition}
           />
 
           {/* Blotato supported platforms */}
