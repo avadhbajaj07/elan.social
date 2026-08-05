@@ -114,6 +114,38 @@ export default function Sidebar({ clients, selectedClient, onSelectClient }: Sid
           </Link>
         </div>
 
+        {/* Client Workspace Selector */}
+        <div className="p-3 border-b border-slate-200 bg-slate-50 space-y-1">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+              Active Client Workspace
+            </span>
+            <Link
+              href="/dashboard/clients"
+              className="text-[10px] font-black text-purple-600 hover:underline"
+            >
+              Manage →
+            </Link>
+          </div>
+
+          <div className="relative">
+            <select
+              value={selectedClient?.id || ""}
+              onChange={(e) => {
+                const target = clients.find((c) => c.id === e.target.value);
+                if (target) onSelectClient(target);
+              }}
+              className="w-full bg-white border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-purple-500 cursor-pointer truncate shadow-sm"
+            >
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  🏢 {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Summary Tab */}
         <div className="p-3 border-b border-slate-200">
           <Link
@@ -129,11 +161,11 @@ export default function Sidebar({ clients, selectedClient, onSelectClient }: Sid
           </Link>
         </div>
 
-        {/* Connected Accounts Section */}
+        {/* Connected Accounts Section (Filtered for Selected Client) */}
         <div className="p-3 border-b border-slate-200 space-y-2">
           <div className="flex items-center justify-between px-1">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
-              Connected Accounts
+              {selectedClient?.name ? `${selectedClient.name} Accounts` : "Connected Accounts"}
             </span>
             <button
               onClick={handleSync}
@@ -181,15 +213,32 @@ export default function Sidebar({ clients, selectedClient, onSelectClient }: Sid
             </div>
           )}
 
-          {/* Connected accounts list */}
+          {/* Connected accounts list — Strictly Filtered for Active Client */}
           {!loading && !setupRequired && !error && (
             <div className="space-y-1.5">
-              {accounts.length === 0 ? (
-                <div className="text-center py-3 text-slate-400 text-[10px] font-bold">
-                  No accounts connected yet
-                </div>
-              ) : (
-                accounts.map((acc) => {
+              {(() => {
+                const assignedIds = selectedClient?.blotatoAccountIds || [];
+                const clientAccounts = assignedIds.length > 0
+                  ? accounts.filter((a) => assignedIds.includes(a.id))
+                  : accounts; // Fallback if no specific assignment
+
+                if (clientAccounts.length === 0) {
+                  return (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center space-y-1">
+                      <p className="text-[11px] text-slate-500 font-bold">
+                        No accounts linked to {selectedClient?.name || "this client"}
+                      </p>
+                      <Link
+                        href="/dashboard/clients"
+                        className="text-[10px] font-black text-purple-600 hover:underline block"
+                      >
+                        + Assign Accounts →
+                      </Link>
+                    </div>
+                  );
+                }
+
+                return clientAccounts.map((acc) => {
                   const meta = PLATFORM_META[acc.platform.toLowerCase()] || {
                     icon: "📱",
                     label: acc.platform,
@@ -211,8 +260,8 @@ export default function Sidebar({ clients, selectedClient, onSelectClient }: Sid
                       </span>
                     </div>
                   );
-                })
-              )}
+                });
+              })()}
             </div>
           )}
 

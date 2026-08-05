@@ -67,6 +67,7 @@ function ClientsContent() {
   const [editingClient, setEditingClient] = useState<ClientProfile | null>(null);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [copiedPortal, setCopiedPortal] = useState<string | null>(null);
 
   // Form State
   const [formName, setFormName] = useState("");
@@ -443,15 +444,42 @@ function ClientsContent() {
                   )}
                 </div>
 
-                {/* Card Footer */}
-                <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400 font-bold">
-                    🕐 {client.timeZone}
-                  </span>
-                  <span className="text-[10px] font-black text-emerald-600 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    {clientAccounts.length} account{clientAccounts.length !== 1 ? "s" : ""}
-                  </span>
+                {/* Card Footer with Client Portal Action */}
+                <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 space-y-2">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-slate-400 font-bold">🕐 {client.timeZone}</span>
+                    <span className="font-black text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      {clientAccounts.length} account{clientAccounts.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = `${window.location.origin}/portal/${client.slug}`;
+                        navigator.clipboard.writeText(url);
+                        setCopiedPortal(client.slug);
+                        setTimeout(() => setCopiedPortal(null), 3000);
+                      }}
+                      className="flex-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-black text-xs py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      {copiedPortal === client.slug ? (
+                        <><Check className="w-3.5 h-3.5 text-emerald-600" /> Link Copied!</>
+                      ) : (
+                        <><LinkIcon className="w-3.5 h-3.5" /> Copy Client Portal Link</>
+                      )}
+                    </button>
+                    <a
+                      href={`/portal/${client.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-slate-950 hover:bg-black text-[#ccff00] font-black text-xs px-3 py-2 rounded-xl flex items-center gap-1 transition-all"
+                    >
+                      Open <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
 
                 {/* Delete Confirm */}
