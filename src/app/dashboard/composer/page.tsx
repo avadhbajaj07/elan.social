@@ -14,14 +14,18 @@ import {
   Image as ImageIcon,
   Hash,
   CheckCircle2,
-  Copy,
-  ExternalLink,
   Calendar as CalendarIcon,
-  Users,
   Loader2,
   AlertCircle,
   Check,
   RefreshCw,
+  Plus,
+  Trash2,
+  GalleryHorizontal,
+  Film,
+  LayoutTemplate,
+  MoveUp,
+  MoveDown,
 } from "lucide-react";
 
 const PLATFORM_ICONS: Record<string, string> = {
@@ -46,10 +50,16 @@ export default function PostComposerPage() {
   const [activePreviewPlatform, setActivePreviewPlatform] = useState<SocialPlatformKey>("instagram");
 
   // Post content
+  const [postType, setPostType] = useState<"single" | "carousel" | "video">("single");
   const [caption, setCaption] = useState("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [newHashtagInput, setNewHashtagInput] = useState("");
+  // Single image / video
   const [mediaUrl, setMediaUrl] = useState("");
+  // Carousel: multiple image URLs
+  const [carouselUrls, setCarouselUrls] = useState<string[]>(["" , ""]);
+  const [newCarouselUrl, setNewCarouselUrl] = useState("");
+
   const [scheduledTime, setScheduledTime] = useState(() => {
     // Default to tomorrow at 10am
     const d = new Date();
@@ -152,6 +162,19 @@ export default function PostComposerPage() {
       ? `${caption}\n\n${hashtags.map((h) => `#${h}`).join(" ")}`
       : caption;
 
+    // Build media URLs based on post type
+    let finalMediaUrls: string[] = [];
+    if (postType === "carousel") {
+      finalMediaUrls = carouselUrls.filter((u) => u.trim() !== "");
+      if (finalMediaUrls.length < 2) {
+        setSubmitResult({ success: false, message: "Carousel needs at least 2 image URLs." });
+        setIsSubmitting(false);
+        return;
+      }
+    } else if (postType === "single" || postType === "video") {
+      finalMediaUrls = mediaUrl ? [mediaUrl] : [];
+    }
+
     try {
       const res = await fetch("/api/posts", {
         method: "POST",
@@ -161,7 +184,8 @@ export default function PostComposerPage() {
           clientName: selectedClient?.name,
           blotatoAccountIds: selectedAccountIds,
           caption: finalCaption,
-          mediaUrls: mediaUrl ? [mediaUrl] : [],
+          mediaUrls: finalMediaUrls,
+          postType,
           platforms: selectedPlatforms,
           scheduledTime: postMode === "schedule" ? scheduledTime : new Date().toISOString(),
           publishNow: postMode === "now",
@@ -374,22 +398,130 @@ export default function PostComposerPage() {
               </div>
             </div>
 
-            {/* Media URL */}
-            <div className="space-y-1.5">
+            {/* Post Type Selector */}
+            <div className="space-y-3">
               <label className="text-xs font-black text-slate-700 flex items-center gap-1">
-                <ImageIcon className="w-3.5 h-3.5 text-emerald-500" /> Image / Video URL (optional)
+                <LayoutTemplate className="w-3.5 h-3.5 text-purple-500" /> Post Type
               </label>
-              <input
-                type="url"
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                placeholder="https://your-image-url.com/photo.jpg"
-                className="w-full bg-slate-50 border-2 border-slate-200 focus:border-purple-500 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none transition-colors"
-              />
-              {mediaUrl && (
-                <img src={mediaUrl} alt="preview" className="w-full h-40 object-cover rounded-xl border border-slate-200 mt-2" onError={(e) => (e.currentTarget.style.display = "none")} />
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { type: "single", icon: <ImageIcon className="w-4 h-4" />, label: "Single Image" },
+                  { type: "carousel", icon: <GalleryHorizontal className="w-4 h-4" />, label: "Carousel" },
+                  { type: "video", icon: <Film className="w-4 h-4" />, label: "Video / Reel" },
+                ].map(({ type, icon, label }) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setPostType(type as any)}
+                    className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-xs font-black transition-all ${
+                      postType === type
+                        ? "border-purple-500 bg-purple-50 text-purple-800"
+                        : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    {icon}
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Carousel tip */}
+              {postType === "carousel" && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-[11px] text-blue-700 font-bold">
+                  📷 <strong>Instagram Carousel:</strong> Add 2–10 image URLs. They'll appear as swipeable slides. Use publicly accessible image URLs (Unsplash, Cloudinary, your CDN, etc.)
+                </div>
+              )}
+              {postType === "video" && (
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-[11px] text-purple-700 font-bold">
+                  🎬 <strong>Video / Reel:</strong> Paste a direct video URL (.mp4). If your video already has music baked in, it will publish with that audio. Trending music must be added natively in the Instagram/TikTok app.
+                </div>
               )}
             </div>
+
+            {/* Single Image / Video URL */}
+            {(postType === "single" || postType === "video") && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-700 flex items-center gap-1">
+                  {postType === "video"
+                    ? <><Film className="w-3.5 h-3.5 text-purple-500" /> Video URL (.mp4)</>
+                    : <><ImageIcon className="w-3.5 h-3.5 text-emerald-500" /> Image URL (optional)</>
+                  }
+                </label>
+                <input
+                  type="url"
+                  value={mediaUrl}
+                  onChange={(e) => setMediaUrl(e.target.value)}
+                  placeholder={postType === "video" ? "https://example.com/reel.mp4" : "https://images.unsplash.com/..."}
+                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-purple-500 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none transition-colors"
+                />
+                {mediaUrl && postType === "single" && (
+                  <img src={mediaUrl} alt="preview" className="w-full h-40 object-cover rounded-xl border border-slate-200 mt-2" onError={(e) => (e.currentTarget.style.display = "none")} />
+                )}
+              </div>
+            )}
+
+            {/* Carousel Image Manager */}
+            {postType === "carousel" && (
+              <div className="space-y-3">
+                <label className="text-xs font-black text-slate-700 flex items-center gap-1">
+                  <GalleryHorizontal className="w-3.5 h-3.5 text-pink-500" /> Carousel Slides ({carouselUrls.filter(u => u.trim()).length}/10)
+                </label>
+
+                <div className="space-y-2">
+                  {carouselUrls.map((url, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <div className="flex flex-col gap-1">
+                        <button type="button" disabled={idx === 0} onClick={() => { const a = [...carouselUrls]; [a[idx-1], a[idx]] = [a[idx], a[idx-1]]; setCarouselUrls(a); }} className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-30 transition-all"><MoveUp className="w-3 h-3 text-slate-600" /></button>
+                        <button type="button" disabled={idx === carouselUrls.length - 1} onClick={() => { const a = [...carouselUrls]; [a[idx], a[idx+1]] = [a[idx+1], a[idx]]; setCarouselUrls(a); }} className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-30 transition-all"><MoveDown className="w-3 h-3 text-slate-600" /></button>
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-black flex items-center justify-center shrink-0">{idx + 1}</span>
+                          <input
+                            type="url"
+                            value={url}
+                            onChange={(e) => { const a = [...carouselUrls]; a[idx] = e.target.value; setCarouselUrls(a); }}
+                            placeholder={`Slide ${idx + 1} image URL...`}
+                            className="flex-1 bg-slate-50 border-2 border-slate-200 focus:border-pink-400 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none transition-colors"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setCarouselUrls(carouselUrls.filter((_, i) => i !== idx))}
+                            disabled={carouselUrls.length <= 2}
+                            className="w-7 h-7 rounded-xl bg-red-50 hover:bg-red-100 flex items-center justify-center disabled:opacity-30 transition-all shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                          </button>
+                        </div>
+                        {url.trim() && (
+                          <img src={url} alt={`slide ${idx + 1}`} className="w-full h-24 object-cover rounded-lg border border-slate-200" onError={(e) => (e.currentTarget.style.display = "none")} />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {carouselUrls.length < 10 && (
+                  <button
+                    type="button"
+                    onClick={() => setCarouselUrls([...carouselUrls, ""])}
+                    className="w-full py-2 rounded-xl border-2 border-dashed border-slate-300 hover:border-pink-400 text-xs font-black text-slate-500 hover:text-pink-600 flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Slide ({carouselUrls.length}/10)
+                  </button>
+                )}
+
+                {/* Carousel strip preview */}
+                {carouselUrls.some(u => u.trim()) && (
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {carouselUrls.filter(u => u.trim()).map((url, idx) => (
+                      <img key={idx} src={url} alt={`slide ${idx+1}`} className="w-16 h-16 object-cover rounded-lg border-2 border-slate-200 shrink-0" onError={(e) => (e.currentTarget.style.display = "none")} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
 
             {/* Schedule vs Post Now */}
             <div className="space-y-3">

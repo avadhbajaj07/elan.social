@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     blotatoAccountIds,
     caption,
     mediaUrls = [],
+    postType = "single",
     scheduledTime,
     publishNow = false,
     platforms = [],
@@ -46,6 +47,14 @@ export async function POST(request: Request) {
     );
   }
 
+  // Validate carousel
+  if (postType === "carousel" && mediaUrls.length < 2) {
+    return NextResponse.json(
+      { success: false, error: "Carousel requires at least 2 image URLs." },
+      { status: 400 }
+    );
+  }
+
   const results: any[] = [];
   const errors: string[] = [];
 
@@ -53,7 +62,6 @@ export async function POST(request: Request) {
   for (const accountId of blotatoAccountIds) {
     try {
       // Build the Blotato post payload
-      // Blotato API: POST /v2/posts
       const blotatoPayload: any = {
         post: {
           accountId: accountId,
@@ -63,9 +71,16 @@ export async function POST(request: Request) {
         },
       };
 
-      // Add media if provided
-      if (mediaUrls && mediaUrls.length > 0) {
+      // Add media based on post type
+      if (postType === "carousel" && mediaUrls.length >= 2) {
+        // Blotato carousel: array of image URLs
         blotatoPayload.post.content.mediaUrls = mediaUrls;
+        blotatoPayload.post.content.mediaType = "carousel";
+      } else if (mediaUrls && mediaUrls.length > 0) {
+        blotatoPayload.post.content.mediaUrls = mediaUrls;
+        if (postType === "video") {
+          blotatoPayload.post.content.mediaType = "video";
+        }
       }
 
       // Add scheduled time if not posting now
