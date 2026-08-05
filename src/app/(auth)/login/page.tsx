@@ -3,77 +3,87 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sparkles, ArrowRight, Lock, Mail } from "lucide-react";
+import { Sparkles, Mail, Lock, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("agency@apex-media.eu");
-  const [password, setPassword] = useState("••••••••••••");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/dashboard");
+    setLoading(true);
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 800);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 selection:bg-blue-500 selection:text-white relative overflow-hidden">
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="glass-panel max-w-md w-full p-8 rounded-3xl border border-slate-800 space-y-6 relative z-10">
+    <div className="min-h-screen bg-slate-950 text-white font-sans flex items-center justify-center p-4 selection:bg-[#ccff00] selection:text-slate-950">
+      <div className="w-full max-w-md bg-slate-900/90 border-2 border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6">
+        {/* Brand Header */}
         <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white">
-              <Sparkles className="w-5 h-5 animate-pulse" />
+          <Link href="/" className="inline-flex items-center gap-1.5 justify-center group">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs">
+              <Sparkles className="w-4.5 h-4.5 text-[#ccff00]" />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">
-              SocialPulse<span className="text-blue-500">.ai</span>
+            <span className="text-2xl font-black lowercase text-white">
+              elan<span className="text-pink-500">.social</span>
             </span>
           </Link>
-          <h1 className="text-xl font-bold text-white pt-2">Sign In to Agency Dashboard</h1>
-          <p className="text-xs text-slate-400">Enter your credentials to access client workspaces</p>
+
+          <h1 className="text-2xl font-black text-white pt-2">Welcome Back</h1>
+          <p className="text-xs text-slate-400 font-bold">
+            Sign in to your agency command center
+          </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4 text-xs">
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs font-sans">
           <div className="space-y-1">
-            <label className="font-semibold text-slate-300">Work Email:</label>
+            <label className="font-extrabold text-slate-300 block text-xs">Work Email:</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+              <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full glass-input rounded-xl pl-9 pr-4 py-2.5 text-white"
+                placeholder="admin@agency.com"
+                className="w-full bg-white text-slate-900 font-extrabold text-sm border-2 border-slate-700 focus:border-pink-500 rounded-xl pl-10 pr-4 py-3 placeholder:text-slate-400 focus:outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="font-semibold text-slate-300">Password:</label>
+            <label className="font-extrabold text-slate-300 block text-xs">Password:</label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+              <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full glass-input rounded-xl pl-9 pr-4 py-2.5 text-white"
+                placeholder="••••••••••••"
+                className="w-full bg-white text-slate-900 font-extrabold text-sm border-2 border-slate-700 focus:border-pink-500 rounded-xl pl-10 pr-4 py-3 placeholder:text-slate-400 focus:outline-none"
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full gradient-brand text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 text-xs hover:opacity-90 transition-all pt-3"
+            disabled={loading}
+            className="w-full py-3.5 bg-[#ccff00] text-slate-950 font-black text-sm rounded-xl shadow-lg hover:bg-white transition-all flex items-center justify-center gap-2 mt-2"
           >
-            Sign In to Dashboard <ArrowRight className="w-4 h-4" />
+            {loading ? "Signing In..." : "Sign In to Dashboard"} <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        <div className="text-center text-xs text-slate-400">
-          Don't have an agency account yet?{" "}
-          <Link href="/signup" className="text-blue-400 font-bold hover:underline">
-            Register Here
+        <div className="text-center pt-2 border-t border-slate-800 text-xs">
+          <span className="text-slate-400 font-medium">Don't have an account? </span>
+          <Link href="/signup" className="text-pink-500 font-extrabold hover:underline">
+            Create Account
           </Link>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   BarChart3,
@@ -13,9 +13,12 @@ import {
   ChevronDown,
   Sparkles,
   Zap,
-  User
+  User,
+  LogOut,
+  ShieldCheck
 } from "lucide-react";
 import { ClientProfile } from "@/lib/mockData";
+import { useAuth } from "@/lib/auth-context";
 
 export interface HeaderProps {
   selectedClient: ClientProfile;
@@ -23,6 +26,17 @@ export interface HeaderProps {
 
 export default function Header({ selectedClient }: HeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, signOut, isConfigured } = useAuth();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  const agencyName = user?.user_metadata?.agency_name || "Apex Media Studio";
+  const userEmail = user?.email || "agency@apex-media.eu";
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/login");
+  };
 
   const tabs = [
     { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
@@ -34,7 +48,7 @@ export default function Header({ selectedClient }: HeaderProps) {
   ];
 
   return (
-    <header className="bg-slate-950 text-white h-14 sticky top-0 z-50 px-4 flex items-center justify-between font-sans shadow-lg">
+    <header className="bg-slate-950 text-white h-14 sticky top-0 z-50 px-4 flex items-center justify-between font-sans shadow-lg border-b border-slate-800">
       {/* Left: elan.social Logo Icon & Navigation Tabs */}
       <div className="flex items-center gap-6 overflow-x-auto">
         <Link href="/" className="flex items-center gap-1.5 shrink-0 group">
@@ -75,25 +89,64 @@ export default function Header({ selectedClient }: HeaderProps) {
         </nav>
       </div>
 
-      {/* Right: Upgrade Button & Brand Selector */}
-      <div className="flex items-center gap-3 shrink-0">
+      {/* Right: Upgrade Button, Client Selector, & User Auth Profile */}
+      <div className="flex items-center gap-3 shrink-0 relative">
         <Link
           href="/#pricing"
-          className="bg-[#ccff00] text-slate-950 text-xs font-black px-4 py-1.5 rounded-xl shadow-md hover:bg-white transition-all flex items-center gap-1"
+          className="bg-[#ccff00] text-slate-950 text-xs font-black px-3.5 py-1.5 rounded-xl shadow-md hover:bg-white transition-all flex items-center gap-1"
         >
           <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-          <span>Upgrade plan</span>
+          <span>Upgrade</span>
         </Link>
 
-        {/* Active Client Selector */}
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1 rounded-xl text-xs font-black cursor-pointer">
-          <div className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-slate-300">
-            <User className="w-3.5 h-3.5" />
-          </div>
-          <span className="text-slate-200 max-w-[120px] truncate">{selectedClient.name}</span>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+        {/* User Auth Profile Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors"
+          >
+            <div className="w-6 h-6 rounded-full gradient-brand flex items-center justify-center text-white font-extrabold text-[10px]">
+              {agencyName.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="text-left hidden md:block">
+              <div className="text-slate-200 font-black truncate max-w-[110px] leading-none">{agencyName}</div>
+              <div className="text-[10px] text-slate-400 font-medium truncate max-w-[110px] leading-tight">{userEmail}</div>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
+          </button>
+
+          {showProfileMenu && (
+            <div className="absolute right-0 top-12 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-1">
+              <div className="px-3 py-2 border-b border-slate-800">
+                <div className="font-extrabold text-white text-xs">{agencyName}</div>
+                <div className="text-[10px] text-slate-400 truncate">{userEmail}</div>
+                <div className="mt-1 flex items-center gap-1 text-[9px] text-emerald-400 font-bold">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                  <span>{isConfigured ? "Supabase Auth Active" : "Demo Mode Active"}</span>
+                </div>
+              </div>
+
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setShowProfileMenu(false)}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-800 rounded-xl text-slate-300 hover:text-white transition-colors"
+              >
+                <User className="w-3.5 h-3.5 text-slate-400" />
+                <span>Account Settings</span>
+              </Link>
+
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-500/10 text-red-400 hover:text-red-300 rounded-xl transition-colors text-left font-bold"
+              >
+                <LogOut className="w-3.5 h-3.5 text-red-400" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
 }
+
