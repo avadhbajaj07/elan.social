@@ -1,13 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { INITIAL_CLIENTS, ClientProfile } from "@/lib/mockData";
-import { Users, Plus, Globe, Mail, Building2, ChevronRight, Share2, Link as LinkIcon, Smartphone, Check } from "lucide-react";
+import { Users, Plus, Globe, Mail, Building2, ChevronRight, Share2, Link as LinkIcon, Smartphone, Check, CheckCircle2, Sparkles } from "lucide-react";
 
-export default function ClientsPage() {
+function ClientsContent() {
+  const searchParams = useSearchParams();
   const [clients, setClients] = useState<ClientProfile[]>(INITIAL_CLIENTS);
   const [showAddModal, setShowAddModal] = useState(false);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  // Check URL search parameters for OAuth success
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const connected = searchParams.get("connected");
+    const handle = searchParams.get("handle");
+
+    if (success === "true" && connected) {
+      setSuccessBanner(
+        `🎉 Successfully Connected ${connected.toUpperCase()} Account ${handle || ""} to Workspace!`
+      );
+    }
+  }, [searchParams]);
 
   // New Client Form State
   const [newName, setNewName] = useState("");
@@ -50,6 +66,29 @@ export default function ClientsPage() {
 
   return (
     <div className="space-y-8 font-sans text-xs pb-12">
+      {/* Success Notification Banner */}
+      {successBanner && (
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-5 rounded-3xl shadow-xl flex items-center justify-between animate-in fade-in duration-300">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center font-black text-xl">
+              <CheckCircle2 className="w-6 h-6 text-[#ccff00]" />
+            </div>
+            <div>
+              <h4 className="text-base font-black">{successBanner}</h4>
+              <p className="text-xs text-emerald-100 font-bold">
+                Your social channel is authorized and active for automated post scheduling.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setSuccessBanner(null)}
+            className="bg-white/20 hover:bg-white/30 text-white font-extrabold text-xs px-3 py-1.5 rounded-xl"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -120,13 +159,13 @@ export default function ClientsPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <a
                       href={`/api/auth/connect/instagram?clientId=${client.id}`}
-                      className="p-2 bg-pink-50 border border-pink-200 rounded-xl font-bold text-[11px] text-pink-700 text-center hover:bg-pink-100"
+                      className="p-2 bg-pink-50 border border-pink-200 rounded-xl font-bold text-[11px] text-pink-700 text-center hover:bg-pink-100 flex items-center justify-center gap-1"
                     >
                       📷 Connect Instagram
                     </a>
                     <a
                       href={`/api/auth/connect/tiktok?clientId=${client.id}`}
-                      className="p-2 bg-slate-100 border border-slate-200 rounded-xl font-bold text-[11px] text-slate-900 text-center hover:bg-slate-200"
+                      className="p-2 bg-slate-100 border border-slate-200 rounded-xl font-bold text-[11px] text-slate-900 text-center hover:bg-slate-200 flex items-center justify-center gap-1"
                     >
                       🎵 Connect TikTok
                     </a>
@@ -136,7 +175,9 @@ export default function ClientsPage() {
 
               <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-xs font-bold">
                 <span className="text-slate-400 text-[11px]">Workspace Isolated</span>
-                <span className="text-emerald-600 font-black">Ready for OAuth</span>
+                <span className="text-emerald-600 font-black flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Active & Connected
+                </span>
               </div>
             </div>
           );
@@ -204,5 +245,13 @@ export default function ClientsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ClientsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-slate-500 font-bold">Loading client workspaces...</div>}>
+      <ClientsContent />
+    </Suspense>
   );
 }
