@@ -1,23 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Plus,
   FileText,
-  Hash,
   Settings,
   TrendingUp,
   Sparkles,
-  Smartphone,
-  CheckCircle2,
-  ExternalLink,
-  Share2,
-  X,
   RefreshCw,
-  Check
+  Check,
+  AlertCircle,
+  ExternalLink,
+  X,
+  Share2,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { ClientProfile } from "@/lib/mockData";
 
@@ -27,77 +27,82 @@ export interface SidebarProps {
   onSelectClient: (client: ClientProfile) => void;
 }
 
+interface ConnectedAccount {
+  id: string;
+  platform: string;
+  username: string;
+  account_name: string;
+  avatar_url?: string;
+  connected: boolean;
+}
+
+const PLATFORM_META: Record<string, { icon: string; label: string; color: string }> = {
+  instagram: { icon: "📷", label: "Instagram", color: "text-pink-700 bg-pink-50 border-pink-200" },
+  facebook: { icon: "📘", label: "Facebook", color: "text-blue-700 bg-blue-50 border-blue-200" },
+  tiktok: { icon: "🎵", label: "TikTok", color: "text-slate-900 bg-slate-100 border-slate-300" },
+  youtube: { icon: "▶", label: "YouTube", color: "text-red-700 bg-red-50 border-red-200" },
+  linkedin: { icon: "💼", label: "LinkedIn", color: "text-indigo-700 bg-indigo-50 border-indigo-200" },
+  twitter: { icon: "𝕏", label: "X / Twitter", color: "text-slate-900 bg-slate-100 border-slate-300" },
+};
+
 export default function Sidebar({ clients, selectedClient, onSelectClient }: SidebarProps) {
   const pathname = usePathname();
-  const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
+  const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [setupRequired, setSetupRequired] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [connectedAccounts, setConnectedAccounts] = useState<Record<string, string>>({
-    instagram: "@instagram_client1", // Active connected handle
-  });
 
-  const fetchConnectedAccounts = async () => {
+  const fetchAccounts = useCallback(async (showSpinner = false) => {
+    if (showSpinner) setSyncing(true);
+    setError(null);
+
     try {
-      const res = await fetch("/api/social-accounts");
+      const res = await fetch("/api/social-accounts", { cache: "no-store" });
       const data = await res.json();
-      if (data.success && data.accounts?.length > 0) {
-        const map: Record<string, string> = { instagram: "@instagram_client1" };
-        data.accounts.forEach((acc: any) => {
-          if (acc.platform) {
-            map[acc.platform.toLowerCase()] = acc.username || acc.account_name || "Connected";
-          }
-        });
-        setConnectedAccounts(map);
-      }
-    } catch (err) {
-      console.warn("Using active connected profile state");
-    }
-  };
 
-  useEffect(() => {
-    fetchConnectedAccounts();
-  }, []);
-
-  const socialNetworks = [
-    { id: "instagram", name: "Instagram", bg: "bg-pink-50 text-pink-700 border-pink-200", icon: "📷" },
-    { id: "facebook", name: "Facebook", bg: "bg-blue-50 text-blue-700 border-blue-200", icon: "📘" },
-    { id: "tiktok", name: "TikTok", bg: "bg-slate-100 text-slate-900 border-slate-300", icon: "🎵" },
-    { id: "youtube", name: "YouTube", bg: "bg-red-50 text-red-700 border-red-200", icon: "▶" },
-    { id: "linkedin", name: "LinkedIn", bg: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: "💼" },
-  ];
-
-  const handleSyncAccounts = async () => {
-    setSyncing(true);
-    setSyncStatus(null);
-    try {
-      const res = await fetch("/api/social-accounts");
-      const data = await res.json();
-      if (data.success) {
-        setSyncStatus(`Successfully synced ${data.count || 1} account(s)!`);
-        fetchConnectedAccounts();
+      if (data.setup_required) {
+        setSetupRequired(true);
+        setAccounts([]);
+      } else if (data.success && Array.isArray(data.accounts)) {
+        setAccounts(data.accounts.filter((a: ConnectedAccount) => a.connected));
+        setSetupRequired(false);
       } else {
-        setSyncStatus("Connected profile active");
+        setError(data.error || "Could not load accounts");
+        setAccounts([]);
       }
-    } catch (err) {
-      setSyncStatus("Connected profile active");
+    } catch {
+      setError("Network error. Check your connection.");
     } finally {
+      setLoading(false);
       setSyncing(false);
     }
-  };
+  }, []);
 
-  const copyConnectLink = () => {
-    const siteUrl = window.location.origin;
-    const link = `${siteUrl}/connect/${selectedClient?.slug || "my-brand"}`;
+  useEffect(() => {
+    fetchAccounts();
+  }, [fetchAccounts]);
+
+  const handleSync = () => fetchAccounts(true);
+
+  const copyOnboardingLink = () => {
+    const link = `${window.location.origin}/connect/${selectedClient?.slug || "my-brand"}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
 
+  // Group accounts by platform
+  const connectedPlatforms = new Set(accounts.map((a) => a.platform.toLowerCase()));
+
+  const ALL_PLATFORMS = ["instagram", "facebook", "tiktok", "youtube", "linkedin", "twitter"];
+
   return (
     <>
       <aside className="w-60 bg-white border-r border-slate-200 flex flex-col h-[calc(100vh-3.5rem)] fixed top-14 left-0 z-40 font-sans text-xs">
-        {/* Top Brand Header: elan.social */}
+        {/* Brand Header */}
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1 group">
             <div className="w-7 h-7 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs">
@@ -124,57 +129,102 @@ export default function Sidebar({ clients, selectedClient, onSelectClient }: Sid
           </Link>
         </div>
 
-        {/* Connected Networks List */}
+        {/* Connected Accounts Section */}
         <div className="p-3 border-b border-slate-200 space-y-2">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block px-1">
-            Connected Networks
-          </span>
-
-          <div className="space-y-1.5">
-            {socialNetworks.map((net) => {
-              const connectedHandle = connectedAccounts[net.id];
-              return (
-                <div
-                  key={net.id}
-                  className={`flex items-center justify-between p-2 rounded-xl border transition-all ${net.bg}`}
-                >
-                  <div className="flex items-center gap-2 font-black text-slate-900 truncate pr-1">
-                    <span className="text-sm shrink-0">{net.icon}</span>
-                    <span className="truncate">
-                      {connectedHandle ? (
-                        <span className="text-[11px] font-black text-emerald-950 flex items-center gap-1">
-                          {connectedHandle}
-                        </span>
-                      ) : (
-                        net.name
-                      )}
-                    </span>
-                  </div>
-
-                  {connectedHandle ? (
-                    <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
-                      <Check className="w-3.5 h-3.5" />
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => setActiveModal(net.id)}
-                      className="w-6 h-6 rounded-full border-2 border-slate-900 bg-white hover:bg-slate-950 hover:text-[#ccff00] flex items-center justify-center font-black transition-all shadow-sm shrink-0"
-                      title={`Connect ${net.name}`}
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+              Connected Accounts
+            </span>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              title="Refresh accounts"
+              className="text-slate-400 hover:text-purple-600 transition-colors"
+            >
+              <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin text-purple-600" : ""}`} />
+            </button>
           </div>
 
-          <button
-            onClick={() => setActiveModal("all")}
-            className="w-full text-center border-2 border-slate-900 text-slate-900 font-black py-2 rounded-xl transition-all text-xs mt-2 hover:bg-slate-950 hover:text-[#ccff00] shadow-sm flex items-center justify-center gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" /> Add social account
-          </button>
+          {/* Loading state */}
+          {loading && (
+            <div className="flex items-center justify-center py-4 text-slate-400">
+              <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+              <span className="text-[11px]">Loading accounts...</span>
+            </div>
+          )}
+
+          {/* Setup required — Blotato API key missing */}
+          {!loading && setupRequired && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+              <div className="flex items-center gap-1.5 text-amber-700">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span className="font-black text-[11px]">Blotato key not set</span>
+              </div>
+              <p className="text-[10px] text-amber-600 leading-relaxed">
+                Add your <code className="font-mono bg-amber-100 px-1 rounded">BLOTATO_API_KEY</code> to connect social accounts.
+              </p>
+              <a
+                href="https://my.blotato.com/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[10px] font-black text-amber-700 hover:text-amber-900"
+              >
+                Get API Key <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+            </div>
+          )}
+
+          {/* Error state */}
+          {!loading && error && !setupRequired && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-2 text-[10px] text-red-600 font-bold">
+              {error}
+            </div>
+          )}
+
+          {/* Connected accounts list */}
+          {!loading && !setupRequired && !error && (
+            <div className="space-y-1.5">
+              {accounts.length === 0 ? (
+                <div className="text-center py-3 text-slate-400 text-[10px] font-bold">
+                  No accounts connected yet
+                </div>
+              ) : (
+                accounts.map((acc) => {
+                  const meta = PLATFORM_META[acc.platform.toLowerCase()] || {
+                    icon: "📱",
+                    label: acc.platform,
+                    color: "text-slate-700 bg-slate-50 border-slate-200",
+                  };
+                  return (
+                    <div
+                      key={acc.id}
+                      className={`flex items-center justify-between p-2 rounded-xl border ${meta.color}`}
+                    >
+                      <div className="flex items-center gap-2 truncate pr-1">
+                        <span className="text-sm shrink-0">{meta.icon}</span>
+                        <span className="font-black text-[11px] truncate">
+                          {acc.username || acc.account_name}
+                        </span>
+                      </div>
+                      <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <Check className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+
+          {/* Add Account Button */}
+          {!loading && (
+            <button
+              onClick={() => setShowModal(true)}
+              className="w-full text-center border-2 border-slate-900 text-slate-900 font-black py-2 rounded-xl transition-all text-xs mt-1 hover:bg-slate-950 hover:text-[#ccff00] shadow-sm flex items-center justify-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add social account
+            </button>
+          )}
         </div>
 
         {/* Sub-Navigation Links */}
@@ -191,7 +241,7 @@ export default function Sidebar({ clients, selectedClient, onSelectClient }: Sid
               <TrendingUp className="w-4 h-4 text-purple-600" />
               <span>Reporting</span>
             </div>
-            <span className="text-[9px] bg-purple-200 text-purple-800 font-black px-1.5 py-0.2 rounded-full">
+            <span className="text-[9px] bg-purple-200 text-purple-800 font-black px-1.5 py-0.5 rounded-full">
               New
             </span>
           </Link>
@@ -222,95 +272,121 @@ export default function Sidebar({ clients, selectedClient, onSelectClient }: Sid
         </div>
       </aside>
 
-      {/* Interactive Social Connection Modal */}
-      {activeModal && (
+      {/* How to Connect Modal */}
+      {showModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md p-6 sm:p-8 rounded-3xl border-2 border-slate-900 shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">
-                  {activeModal === "instagram"
-                    ? "📷"
-                    : activeModal === "tiktok"
-                    ? "🎵"
-                    : activeModal === "facebook"
-                    ? "📘"
-                    : activeModal === "youtube"
-                    ? "▶"
-                    : activeModal === "linkedin"
-                    ? "💼"
-                    : "📱"}
-                </span>
-                <h3 className="text-lg font-black text-slate-900 capitalize">
-                  Connect {activeModal === "all" ? "Social Network" : activeModal}
-                </h3>
+          <div className="bg-white w-full max-w-lg rounded-3xl border-2 border-slate-900 shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b-2 border-slate-100 bg-gradient-to-r from-pink-500 to-purple-600">
+              <div>
+                <h3 className="text-lg font-black text-white">Connect Social Accounts</h3>
+                <p className="text-purple-100 text-xs font-bold mt-0.5">
+                  Powered by Blotato — no app review needed
+                </p>
               </div>
               <button
-                onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-black text-slate-600 transition-all"
+                onClick={() => setShowModal(false)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs font-sans">
-              {/* Option 1: Direct In-App Authorization */}
-              <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 rounded-2xl text-white space-y-3 shadow-lg">
-                <h4 className="font-black text-sm text-white flex items-center gap-1.5">
-                  <Smartphone className="w-4 h-4 text-[#ccff00]" /> Option 1: Direct OAuth Login
-                </h4>
-                <p className="text-purple-100 text-xs font-bold leading-relaxed">
-                  Log in directly to authorize {activeModal === "all" ? "Instagram" : activeModal} for{" "}
-                  <strong className="text-[#ccff00]">{selectedClient?.name || "Client Workspace"}</strong>.
-                </p>
-                <a
-                  href={`/api/auth/connect/${activeModal === "all" ? "instagram" : activeModal}?clientId=${
-                    selectedClient?.id || "default-client"
-                  }`}
-                  className="w-full bg-slate-950 hover:bg-black text-[#ccff00] font-black py-3 rounded-xl text-center shadow transition-all flex items-center justify-center gap-2 block"
-                >
-                  Connect {activeModal === "all" ? "Instagram" : activeModal} Now <ExternalLink className="w-4 h-4" />
-                </a>
+            <div className="p-6 space-y-5">
+              {/* Step 1 */}
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-slate-950 text-[#ccff00] flex items-center justify-center font-black text-sm shrink-0">
+                  1
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-black text-slate-900 text-sm">Log in to Blotato</h4>
+                  <p className="text-slate-500 text-xs font-bold mt-1 leading-relaxed">
+                    Log in to Blotato, then go to <strong>Settings → Social Accounts</strong> to connect Instagram, Facebook, TikTok, LinkedIn, or YouTube.
+                  </p>
+                  <a
+                    href="https://my.blotato.com/login"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-slate-950 text-[#ccff00] font-black text-xs rounded-xl hover:bg-slate-800 transition-all"
+                  >
+                    Open Blotato <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
               </div>
 
-              {/* Option 2: Share Connection Link with Client */}
-              <div className="bg-slate-50 p-4 rounded-2xl border-2 border-slate-200 space-y-2">
-                <h4 className="font-black text-slate-900 text-xs flex items-center gap-1.5">
-                  <Share2 className="w-4 h-4 text-purple-600" /> Option 2: Send Link to Client
-                </h4>
-                <p className="text-slate-500 font-bold text-[11px]">
-                  Send this isolated onboarding link to your client so they can log in on their phone.
-                </p>
-                <button
-                  onClick={copyConnectLink}
-                  className="w-full bg-slate-900 hover:bg-black text-white font-black py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5"
-                >
-                  {copied ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Link Copied to Clipboard!
-                    </>
-                  ) : (
-                    <>
-                      <Share2 className="w-4 h-4 text-[#ccff00]" /> Copy Client Onboarding Link
-                    </>
-                  )}
-                </button>
+              <div className="border-t border-slate-100" />
+
+              {/* Step 2 */}
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-slate-950 text-[#ccff00] flex items-center justify-center font-black text-sm shrink-0">
+                  2
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-black text-slate-900 text-sm">Sync Accounts Here</h4>
+                  <p className="text-slate-500 text-xs font-bold mt-1 leading-relaxed">
+                    After connecting on Blotato, click the button below to pull your connected accounts into elan.social.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      fetchAccounts(true);
+                    }}
+                    disabled={syncing}
+                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-black text-xs rounded-xl transition-all disabled:opacity-60"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
+                    {syncing ? "Syncing..." : "Sync My Accounts"}
+                  </button>
+                </div>
               </div>
 
-              {/* Option 3: Sync Blotato Accounts */}
-              <div className="bg-slate-50 p-4 rounded-2xl border-2 border-slate-200 space-y-2">
-                <h4 className="font-black text-slate-900 text-xs flex items-center gap-1.5">
-                  <RefreshCw className="w-4 h-4 text-blue-600" /> Option 3: Sync Blotato Accounts
-                </h4>
-                <button
-                  onClick={handleSyncAccounts}
-                  disabled={syncing}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-black py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5"
-                >
-                  <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-                  <span>{syncing ? "Syncing..." : "Sync Accounts from Blotato"}</span>
-                </button>
-                {syncStatus && <p className="text-[11px] font-black text-purple-700 text-center">{syncStatus}</p>}
+              <div className="border-t border-slate-100" />
+
+              {/* Step 3 - Client onboarding link */}
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-black text-sm shrink-0">
+                  3
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-black text-slate-900 text-sm">Send Link to Your Client</h4>
+                  <p className="text-slate-500 text-xs font-bold mt-1 leading-relaxed">
+                    Share this onboarding link so your client can connect their own accounts directly.
+                  </p>
+                  <button
+                    onClick={copyOnboardingLink}
+                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 border-2 border-slate-900 text-slate-900 hover:bg-slate-950 hover:text-[#ccff00] font-black text-xs rounded-xl transition-all"
+                  >
+                    {copied ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-3.5 h-3.5" /> Copy Client Link
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Platforms supported */}
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">
+                  Platforms supported via Blotato
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(PLATFORM_META).map(([key, meta]) => (
+                    <span
+                      key={key}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-bold ${meta.color}`}
+                    >
+                      {meta.icon} {meta.label}
+                      {connectedPlatforms.has(key) && (
+                        <Check className="w-3 h-3 text-emerald-600 ml-0.5" />
+                      )}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

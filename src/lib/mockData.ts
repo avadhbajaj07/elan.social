@@ -7,7 +7,11 @@ export interface ClientProfile {
   logo: string;
   avatar_url?: string;
   email?: string;
+  phone?: string;
+  industry?: string;
   timeZone: string;
+  // These are the Blotato account IDs mapped to this client
+  blotatoAccountIds: string[];
   connectedPlatforms: ("instagram" | "tiktok" | "facebook" | "linkedin" | "youtube" | "threads" | "twitter")[];
   stats: {
     totalFollowers: number;
@@ -15,6 +19,8 @@ export interface ClientProfile {
     monthlyImpressions: number;
     postsThisMonth: number;
   };
+  notes?: string;
+  createdAt: string;
 }
 
 export interface Post {
@@ -25,6 +31,8 @@ export interface Post {
   mediaUrls: string[];
   mediaType: "image" | "video" | "carousel";
   platforms: ("instagram" | "tiktok" | "facebook" | "linkedin" | "youtube" | "threads" | "twitter")[];
+  // Blotato account IDs to publish to (one per platform)
+  blotatoAccountIds?: string[];
   scheduledTime: string;
   status: "draft" | "pending_approval" | "approved" | "rejected" | "scheduled" | "published" | "failed";
   approvalToken?: string;
@@ -52,25 +60,18 @@ export interface SocialComment {
   replyText?: string;
 }
 
-// Initial Empty Client Workspaces (Clean state ready for real connected accounts)
-export const INITIAL_CLIENTS: ClientProfile[] = [
-  {
-    id: "client-1",
-    name: "My Social Brand",
-    slug: "my-brand",
-    logo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-    avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-    email: "brand@elan.social",
-    timeZone: "America/New_York",
-    connectedPlatforms: ["instagram", "tiktok", "facebook", "linkedin", "youtube"],
-    stats: {
-      totalFollowers: 0,
-      followerGrowth: 0,
-      monthlyImpressions: 0,
-      postsThisMonth: 0,
-    },
-  },
-];
+export interface BlotatoAccount {
+  id: string;
+  platform: string;
+  username: string;
+  account_name: string;
+  avatar_url?: string;
+  connected: boolean;
+  blotato_account_id: string;
+}
+
+// Default empty state — clients are created/managed at runtime
+export const INITIAL_CLIENTS: ClientProfile[] = [];
 
 // Initial Empty Posts Array
 export const INITIAL_POSTS: Post[] = [];
@@ -130,3 +131,26 @@ export const PRICING_PLANS: PricingPlan[] = [
     ],
   },
 ];
+
+// LocalStorage key for persisting clients client-side
+export const CLIENTS_STORAGE_KEY = "elan_clients_v2";
+
+export function loadClientsFromStorage(): ClientProfile[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CLIENTS_STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as ClientProfile[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveClientsToStorage(clients: ClientProfile[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(clients));
+  } catch {
+    // ignore
+  }
+}
