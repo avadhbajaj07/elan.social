@@ -165,8 +165,12 @@ export default function PostComposerPage() {
         const data = await res.json();
         if (data.success) {
           allResults.push(...(data.results || []));
+          if (data.errors && data.errors.length > 0) {
+            allErrors.push(...data.errors);
+          }
         } else {
-          allErrors.push(`${acc.username}: ${data.error || "Failed"}`);
+          const detail = data.error || (data.errors && data.errors.join(", ")) || "Failed";
+          allErrors.push(`${acc.username}: ${detail}`);
         }
       } catch (err: any) {
         allErrors.push(`${acc.username}: ${err.message}`);

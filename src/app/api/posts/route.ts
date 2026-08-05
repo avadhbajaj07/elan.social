@@ -19,11 +19,13 @@ const BLOTATO_BASE_URL = "https://backend.blotato.com/v2";
  * - post.additionalPosts    (for threads/twitter threads)
  */
 export async function POST(request: Request) {
-  const apiKey = process.env.BLOTATO_API_KEY;
+  const apiKey =
+    process.env.BLOTATO_API_KEY ||
+    "blt_xf24o9kuR/K6NKt6wDQ+c1Snut78GOX41jiqMJO5P7U=";
 
   if (!apiKey || apiKey === "placeholder") {
     return NextResponse.json(
-      { success: false, error: "BLOTATO_API_KEY is not configured." },
+      { success: false, error: "BLOTATO_API_KEY is not configured on the server." },
       { status: 500 }
     );
   }
