@@ -55,6 +55,15 @@ export default function PostComposerPage() {
   const [threadPosts, setThreadPosts] = useState<ThreadPost[]>([{ text: "", mediaUrls: [] }]); // thread chain
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  // TikTok Platform Elements
+  const [tiktokPrivacy, setTiktokPrivacy] = useState<string>("PUBLIC_TO_EVERYONE");
+  const [tiktokAllowComments, setTiktokAllowComments] = useState<boolean>(true);
+  const [tiktokAllowDuet, setTiktokAllowDuet] = useState<boolean>(true);
+  const [tiktokAllowStitch, setTiktokAllowStitch] = useState<boolean>(true);
+  const [tiktokIsAiGenerated, setTiktokIsAiGenerated] = useState<boolean>(false);
+  const [tiktokIsBrandedContent, setTiktokIsBrandedContent] = useState<boolean>(false);
+  const [tiktokIsYourBrand, setTiktokIsYourBrand] = useState<boolean>(false);
+
   // Scheduling
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("schedule");
   const [scheduledTime, setScheduledTime] = useState(() => {
@@ -165,6 +174,17 @@ export default function PostComposerPage() {
         // First comment (Instagram only)
         if (acc.platform === "instagram" && firstComment.trim()) {
           payload.firstCommentText = firstComment.trim();
+        }
+
+        // TikTok elements
+        if (acc.platform === "tiktok") {
+          payload.privacyLevel = tiktokPrivacy;
+          payload.disabledComments = !tiktokAllowComments;
+          payload.disabledDuet = !tiktokAllowDuet;
+          payload.disabledStitch = !tiktokAllowStitch;
+          payload.isAiGenerated = tiktokIsAiGenerated;
+          payload.isBrandedContent = tiktokIsBrandedContent;
+          payload.isYourBrand = tiktokIsYourBrand;
         }
 
         const res = await fetch("/api/posts", {
@@ -552,10 +572,146 @@ export default function PostComposerPage() {
                 Advanced / Platform Features
                 <span className="ml-auto text-[10px] font-bold text-slate-400">Threads · First Comment · etc.</span>
               </button>
-
               {showAdvanced && (
                 <div className="mt-4 space-y-4">
-                  {/* Instagram First Comment */}
+                  {/* TikTok Platform Options */}
+                  <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-4 border border-slate-800">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black text-white flex items-center gap-1.5">
+                        🎵 TikTok Post Controls & Settings
+                      </label>
+                      <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full font-bold">
+                        All 7 Elements
+                      </span>
+                    </div>
+
+                    {/* 1. Privacy Level */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-slate-300">1. Who can view this video (Privacy):</span>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {[
+                          { value: "PUBLIC_TO_EVERYONE", label: "🌐 Everyone (Public)" },
+                          { value: "MUTUAL_FOLLOW_FRIENDS", label: "👥 Friends Only" },
+                          { value: "FOLLOWER_OF_CREATOR", label: "🔒 Followers Only" },
+                          { value: "SELF_ONLY", label: "🔐 Private (Only Me)" },
+                        ].map((item) => (
+                          <button
+                            key={item.value}
+                            type="button"
+                            onClick={() => setTiktokPrivacy(item.value)}
+                            className={`py-1.5 px-2 rounded-xl border text-[10px] font-black transition-all text-left truncate ${
+                              tiktokPrivacy === item.value
+                                ? "border-[#ccff00] bg-slate-800 text-[#ccff00]"
+                                : "border-slate-800 bg-slate-950 text-slate-400"
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 2. Interactive Permissions (Comments, Duet, Stitch) */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-slate-300">2. Interaction Permissions:</span>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setTiktokAllowComments(!tiktokAllowComments)}
+                          className={`py-1.5 px-2 rounded-xl border text-[10px] font-black transition-all ${
+                            tiktokAllowComments
+                              ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
+                              : "border-slate-800 bg-slate-950 text-slate-500"
+                          }`}
+                        >
+                          {tiktokAllowComments ? "✓ Comments On" : "✕ Comments Off"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setTiktokAllowDuet(!tiktokAllowDuet)}
+                          className={`py-1.5 px-2 rounded-xl border text-[10px] font-black transition-all ${
+                            tiktokAllowDuet
+                              ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
+                              : "border-slate-800 bg-slate-950 text-slate-500"
+                          }`}
+                        >
+                          {tiktokAllowDuet ? "✓ Duet On" : "✕ Duet Off"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setTiktokAllowStitch(!tiktokAllowStitch)}
+                          className={`py-1.5 px-2 rounded-xl border text-[10px] font-black transition-all ${
+                            tiktokAllowStitch
+                              ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
+                              : "border-slate-800 bg-slate-950 text-slate-500"
+                          }`}
+                        >
+                          {tiktokAllowStitch ? "✓ Stitch On" : "✕ Stitch Off"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 3. Disclosure & Content Labels */}
+                    <div className="space-y-2 pt-1 border-t border-slate-800">
+                      <span className="text-[11px] font-bold text-slate-300">3. Content Disclosures & Labels:</span>
+
+                      <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <div>
+                          <p className="text-xs font-bold text-white">AI-Generated Content Label</p>
+                          <p className="text-[10px] text-slate-400">Mark video as created with AI tools</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setTiktokIsAiGenerated(!tiktokIsAiGenerated)}
+                          className={`w-10 h-6 rounded-full transition-colors relative p-0.5 ${
+                            tiktokIsAiGenerated ? "bg-purple-600" : "bg-slate-800"
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                            tiktokIsAiGenerated ? "translate-x-4" : "translate-x-0"
+                          }`} />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <div>
+                          <p className="text-xs font-bold text-white">Branded / Commercial Content</p>
+                          <p className="text-[10px] text-slate-400">Disclose paid sponsorship or partnership</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setTiktokIsBrandedContent(!tiktokIsBrandedContent)}
+                          className={`w-10 h-6 rounded-full transition-colors relative p-0.5 ${
+                            tiktokIsBrandedContent ? "bg-purple-600" : "bg-slate-800"
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                            tiktokIsBrandedContent ? "translate-x-4" : "translate-x-0"
+                          }`} />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <div>
+                          <p className="text-xs font-bold text-white">Your Own Brand Promotion</p>
+                          <p className="text-[10px] text-slate-400">Promoting your own product/business</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setTiktokIsYourBrand(!tiktokIsYourBrand)}
+                          className={`w-10 h-6 rounded-full transition-colors relative p-0.5 ${
+                            tiktokIsYourBrand ? "bg-purple-600" : "bg-slate-800"
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                            tiktokIsYourBrand ? "translate-x-4" : "translate-x-0"
+                          }`} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                   {hasInstagram && (
                     <div className="bg-pink-50 border border-pink-200 rounded-2xl p-4 space-y-2">
                       <label className="text-xs font-black text-pink-800 flex items-center gap-1.5">
