@@ -70,8 +70,35 @@ export async function POST(request: Request) {
   for (const accountId of blotatoAccountIds) {
     try {
       // Determine platform for this account
-      // The platform comes from the account's platform field
       const accountPlatform = platform || "instagram";
+
+      // Build target object according to Blotato API specs per platform
+      let targetObj: any = { targetType: accountPlatform };
+
+      if (accountPlatform === "tiktok") {
+        targetObj = {
+          targetType: "tiktok",
+          privacyLevel: body.privacyLevel || "PUBLIC_TO_EVERYONE",
+          disabledComments: body.disabledComments ?? false,
+          disabledDuet: body.disabledDuet ?? false,
+          disabledStitch: body.disabledStitch ?? false,
+          isBrandedContent: body.isBrandedContent ?? false,
+          isYourBrand: body.isYourBrand ?? false,
+          isAiGenerated: body.isAiGenerated ?? false,
+        };
+      } else if (accountPlatform === "youtube") {
+        targetObj = {
+          targetType: "youtube",
+          title: body.title || caption?.slice(0, 90) || "New Video",
+          privacyStatus: body.privacyStatus || "public",
+          shouldNotifySubscribers: body.shouldNotifySubscribers ?? true,
+        };
+      } else if (accountPlatform === "pinterest") {
+        targetObj = {
+          targetType: "pinterest",
+          boardId: body.boardId || "default",
+        };
+      }
 
       // Build the Blotato payload - exact structure required by their API
       const blotatoPayload: any = {
@@ -82,9 +109,7 @@ export async function POST(request: Request) {
             text: caption || "",
             mediaUrls: Array.isArray(mediaUrls) ? mediaUrls : [],
           },
-          target: {
-            targetType: accountPlatform,
-          },
+          target: targetObj,
         },
       };
 
