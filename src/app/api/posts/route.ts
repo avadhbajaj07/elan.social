@@ -93,11 +93,16 @@ export async function POST(request: Request) {
           privacyStatus: body.privacyStatus || "public",
           shouldNotifySubscribers: body.shouldNotifySubscribers ?? true,
         };
-      } else if (accountPlatform === "pinterest") {
+      } else if (accountPlatform === "instagram") {
         targetObj = {
-          targetType: "pinterest",
-          boardId: body.boardId || "default",
+          targetType: "instagram",
         };
+        if (postType === "story" || body.mediaType === "story") {
+          targetObj.mediaType = "story";
+        }
+        if (body.locationId || body.locationTag) {
+          targetObj.locationId = body.locationId || body.locationTag;
+        }
       }
 
       // Build the Blotato payload - exact structure required by their API

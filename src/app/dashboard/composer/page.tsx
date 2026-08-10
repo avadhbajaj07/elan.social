@@ -7,7 +7,7 @@ import {
   Send, Clock, Image as ImageIcon, Hash, CheckCircle2, Calendar as CalendarIcon,
   Loader2, AlertCircle, Check, RefreshCw, Plus, Trash2,
   GalleryHorizontal, Film, LayoutTemplate, MoveUp, MoveDown,
-  MessageSquare, Zap, ChevronDown, ChevronUp, Info, Crop, Maximize, Sliders,
+  MessageSquare, Zap, ChevronDown, ChevronUp, Info, Crop, Maximize, Sliders, Sparkles, MapPin,
 } from "lucide-react";
 
 // ─── Platform definitions ───────────────────────────────────────────────────
@@ -23,7 +23,7 @@ const PLATFORMS: Record<string, { icon: string; label: string; color: string; su
   pinterest: { icon: "📌", label: "Pinterest", color: "bg-red-50 text-red-600 border-red-200", supportsCarousel: false, supportsVideo: true, supportsStory: false, supportsThread: false },
 };
 
-type PostType = "single" | "carousel" | "video" | "text";
+type PostType = "single" | "carousel" | "video" | "story" | "text";
 type ScheduleMode = "now" | "schedule" | "next_slot";
 
 // ─── Thread post item ────────────────────────────────────────────────────────
@@ -52,6 +52,7 @@ export default function PostComposerPage() {
 
   // Platform-specific
   const [firstComment, setFirstComment] = useState(""); // Instagram first comment
+  const [locationTag, setLocationTag] = useState(""); // Instagram Location Tag / Location ID
   const [threadPosts, setThreadPosts] = useState<ThreadPost[]>([{ text: "", mediaUrls: [] }]); // thread chain
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -171,9 +172,10 @@ export default function PostComposerPage() {
           }));
         }
 
-        // First comment (Instagram only)
-        if (acc.platform === "instagram" && firstComment.trim()) {
-          payload.firstCommentText = firstComment.trim();
+        // First comment & Location (Instagram)
+        if (acc.platform === "instagram") {
+          if (firstComment.trim()) payload.firstCommentText = firstComment.trim();
+          if (locationTag.trim()) payload.locationTag = locationTag.trim();
         }
 
         // TikTok elements
@@ -346,15 +348,16 @@ export default function PostComposerPage() {
               <label className="text-xs font-black text-slate-700 flex items-center gap-1">
                 <LayoutTemplate className="w-3.5 h-3.5 text-purple-500" /> Post Type
               </label>
-              <div className="grid grid-cols-4 gap-2">
-                {(["single", "carousel", "video", "text"] as PostType[]).map(type => (
+              <div className="grid grid-cols-5 gap-2">
+                {(["single", "carousel", "video", "story", "text"] as PostType[]).map(type => (
                   <button key={type} type="button" onClick={() => setPostType(type)}
                     className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 text-xs font-black transition-all capitalize ${postType === type ? "border-purple-500 bg-purple-50 text-purple-800" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
                     {type === "single" && <ImageIcon className="w-4 h-4" />}
                     {type === "carousel" && <GalleryHorizontal className="w-4 h-4" />}
                     {type === "video" && <Film className="w-4 h-4" />}
+                    {type === "story" && <Sparkles className="w-4 h-4 text-pink-500" />}
                     {type === "text" && <MessageSquare className="w-4 h-4" />}
-                    {type === "single" ? "Image" : type}
+                    {type === "single" ? "Image" : type === "story" ? "Story 📸" : type}
                   </button>
                 ))}
               </div>
@@ -366,6 +369,11 @@ export default function PostComposerPage() {
               {postType === "video" && (
                 <p className="text-[11px] bg-purple-50 border border-purple-200 text-purple-700 font-bold p-2.5 rounded-xl">
                   🎬 <strong>Video / Reel:</strong> Paste a direct .mp4 URL. Pre-encode audio/music into the video before uploading.
+                </p>
+              )}
+              {postType === "story" && (
+                <p className="text-[11px] bg-pink-50 border border-pink-200 text-pink-700 font-bold p-2.5 rounded-xl">
+                  📸 <strong>Instagram Story:</strong> Upload an image or vertical video URL to publish directly to Instagram Stories!
                 </p>
               )}
             </div>
@@ -713,14 +721,30 @@ export default function PostComposerPage() {
                     </div>
                   </div>
                   {hasInstagram && (
-                    <div className="bg-pink-50 border border-pink-200 rounded-2xl p-4 space-y-2">
+                    <div className="bg-pink-50 border border-pink-200 rounded-2xl p-4 space-y-3">
                       <label className="text-xs font-black text-pink-800 flex items-center gap-1.5">
-                        <MessageSquare className="w-3.5 h-3.5" /> 📷 Instagram — First Comment
+                        📷 Instagram — Location Tagging & First Comment
                       </label>
-                      <p className="text-[11px] text-pink-600 font-bold">Post a comment automatically right after publishing. Great for adding hashtags separately to keep captions clean.</p>
-                      <textarea rows={2} value={firstComment} onChange={e => setFirstComment(e.target.value)}
-                        placeholder="e.g. #luxury #fashion #style #trending"
-                        className="w-full bg-white border-2 border-pink-200 focus:border-pink-500 rounded-xl p-3 text-xs text-slate-900 outline-none resize-none transition-colors" />
+
+                      {/* Location Tag */}
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold text-pink-700">📍 Location Tag / Location ID:</span>
+                        <input
+                          type="text"
+                          value={locationTag}
+                          onChange={(e) => setLocationTag(e.target.value)}
+                          placeholder="e.g. Geneva, Switzerland or Location ID (213050307)"
+                          className="w-full bg-white border-2 border-pink-200 focus:border-pink-500 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none transition-colors"
+                        />
+                      </div>
+
+                      {/* First Comment */}
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold text-pink-700">💬 First Comment:</span>
+                        <textarea rows={2} value={firstComment} onChange={e => setFirstComment(e.target.value)}
+                          placeholder="e.g. #luxury #fashion #style #trending"
+                          className="w-full bg-white border-2 border-pink-200 focus:border-pink-500 rounded-xl p-3 text-xs text-slate-900 outline-none resize-none transition-colors" />
+                      </div>
                     </div>
                   )}
 
