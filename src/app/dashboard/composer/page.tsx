@@ -87,9 +87,19 @@ export default function PostComposerPage() {
 
   // ── When client changes, auto-select their accounts ──────────────────────
   useEffect(() => {
-    if (!selectedClient || !blotatoAccounts.length) return;
-    const ids = selectedClient.blotatoAccountIds || [];
-    setSelectedAccounts(blotatoAccounts.filter(a => ids.includes(a.id)));
+    if (!blotatoAccounts.length) return;
+    if (selectedClient) {
+      const ids = selectedClient.blotatoAccountIds || [];
+      const matched = blotatoAccounts.filter(a => ids.includes(a.id));
+      if (matched.length > 0) {
+        setSelectedAccounts(matched);
+      } else {
+        // Fallback: select active Blotato accounts so posting never fails due to stale IDs
+        setSelectedAccounts(blotatoAccounts);
+      }
+    } else {
+      setSelectedAccounts(blotatoAccounts);
+    }
   }, [selectedClient, blotatoAccounts]);
 
   const toggleAccount = (acc: BlotatoAccount) => {

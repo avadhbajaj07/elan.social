@@ -146,9 +146,13 @@ export default function BulkSchedulerPage() {
 
   // When client changes, auto-select their accounts
   useEffect(() => {
-    if (selectedClient && blotatoAccounts.length > 0) {
+    if (!blotatoAccounts.length) return;
+    if (selectedClient) {
       const clientAccountIds = selectedClient.blotatoAccountIds || [];
-      setSelectedAccounts(blotatoAccounts.filter((a) => clientAccountIds.includes(a.id)));
+      const matched = blotatoAccounts.filter((a) => clientAccountIds.includes(a.id));
+      setSelectedAccounts(matched.length > 0 ? matched : blotatoAccounts);
+    } else {
+      setSelectedAccounts(blotatoAccounts);
     }
   }, [selectedClient, blotatoAccounts]);
 
