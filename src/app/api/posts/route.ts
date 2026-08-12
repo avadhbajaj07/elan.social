@@ -89,10 +89,24 @@ export async function POST(request: Request) {
       } else if (accountPlatform === "youtube") {
         targetObj = {
           targetType: "youtube",
-          title: body.title || caption?.slice(0, 90) || "New Video",
+          title: body.youtubeTitle || body.title || caption?.slice(0, 95) || "New Video",
           privacyStatus: body.privacyStatus || "public",
           shouldNotifySubscribers: body.shouldNotifySubscribers ?? true,
         };
+        if (body.madeForKids !== undefined) targetObj.madeForKids = body.madeForKids;
+      } else if (accountPlatform === "pinterest") {
+        targetObj = {
+          targetType: "pinterest",
+          boardId: body.boardId || "default",
+        };
+        if (body.pinTitle || body.title) targetObj.title = body.pinTitle || body.title;
+        if (body.pinLink || body.link) targetObj.link = body.pinLink || body.link;
+      } else if (accountPlatform === "linkedin") {
+        targetObj = {
+          targetType: "linkedin",
+        };
+        if (body.visibility) targetObj.visibility = body.visibility;
+        if (body.link) targetObj.link = body.link;
       } else if (accountPlatform === "instagram") {
         targetObj = {
           targetType: "instagram",

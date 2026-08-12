@@ -65,6 +65,21 @@ export default function PostComposerPage() {
   const [tiktokIsBrandedContent, setTiktokIsBrandedContent] = useState<boolean>(false);
   const [tiktokIsYourBrand, setTiktokIsYourBrand] = useState<boolean>(false);
 
+  // YouTube Platform Options
+  const [youtubeTitle, setYoutubeTitle] = useState("");
+  const [youtubePrivacy, setYoutubePrivacy] = useState<string>("public");
+  const [youtubeNotifySubscribers, setYoutubeNotifySubscribers] = useState<boolean>(true);
+  const [youtubeMadeForKids, setYoutubeMadeForKids] = useState<boolean>(false);
+
+  // Pinterest Platform Options
+  const [pinterestBoardId, setPinterestBoardId] = useState("default");
+  const [pinterestPinTitle, setPinterestPinTitle] = useState("");
+  const [pinterestDestinationLink, setPinterestDestinationLink] = useState("");
+
+  // LinkedIn Platform Options
+  const [linkedinVisibility, setLinkedinVisibility] = useState<string>("PUBLIC");
+  const [linkedinArticleLink, setLinkedinArticleLink] = useState("");
+
   // Scheduling
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("schedule");
   const [scheduledTime, setScheduledTime] = useState(() => {
@@ -187,6 +202,27 @@ export default function PostComposerPage() {
           payload.isAiGenerated = tiktokIsAiGenerated;
           payload.isBrandedContent = tiktokIsBrandedContent;
           payload.isYourBrand = tiktokIsYourBrand;
+        }
+
+        // YouTube elements
+        if (acc.platform === "youtube") {
+          if (youtubeTitle.trim()) payload.youtubeTitle = youtubeTitle.trim();
+          payload.privacyStatus = youtubePrivacy;
+          payload.shouldNotifySubscribers = youtubeNotifySubscribers;
+          payload.madeForKids = youtubeMadeForKids;
+        }
+
+        // Pinterest elements
+        if (acc.platform === "pinterest") {
+          payload.boardId = pinterestBoardId.trim() || "default";
+          if (pinterestPinTitle.trim()) payload.pinTitle = pinterestPinTitle.trim();
+          if (pinterestDestinationLink.trim()) payload.pinLink = pinterestDestinationLink.trim();
+        }
+
+        // LinkedIn elements
+        if (acc.platform === "linkedin") {
+          payload.visibility = linkedinVisibility;
+          if (linkedinArticleLink.trim()) payload.link = linkedinArticleLink.trim();
         }
 
         const res = await fetch("/api/posts", {
@@ -744,6 +780,125 @@ export default function PostComposerPage() {
                         <textarea rows={2} value={firstComment} onChange={e => setFirstComment(e.target.value)}
                           placeholder="e.g. #luxury #fashion #style #trending"
                           className="w-full bg-white border-2 border-pink-200 focus:border-pink-500 rounded-xl p-3 text-xs text-slate-900 outline-none resize-none transition-colors" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* YouTube Platform Options */}
+                  {selectedPlatforms.includes("youtube") && (
+                    <div className="bg-red-50 border border-red-200 rounded-2xl p-4 space-y-3">
+                      <label className="text-xs font-black text-red-900 flex items-center gap-1.5">
+                        ▶ YouTube Video Settings
+                      </label>
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold text-red-800">Video Title (Required by YouTube):</span>
+                        <input
+                          type="text"
+                          value={youtubeTitle}
+                          onChange={(e) => setYoutubeTitle(e.target.value)}
+                          placeholder="e.g. Masterclass 2026 Tutorial"
+                          className="w-full bg-white border-2 border-red-200 focus:border-red-500 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-red-800">Privacy Status:</span>
+                          <select
+                            value={youtubePrivacy}
+                            onChange={(e) => setYoutubePrivacy(e.target.value)}
+                            className="w-full bg-white border-2 border-red-200 focus:border-red-500 rounded-xl px-3 py-2 text-xs font-black text-slate-900 outline-none"
+                          >
+                            <option value="public">🌐 Public</option>
+                            <option value="unlisted">🔗 Unlisted</option>
+                            <option value="private">🔒 Private</option>
+                          </select>
+                        </div>
+                        <div className="flex flex-col justify-center space-y-1 pt-3">
+                          <button
+                            type="button"
+                            onClick={() => setYoutubeNotifySubscribers(!youtubeNotifySubscribers)}
+                            className={`py-2 px-3 rounded-xl border text-[10px] font-black transition-all ${
+                              youtubeNotifySubscribers
+                                ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                                : "border-slate-300 bg-white text-slate-500"
+                            }`}
+                          >
+                            {youtubeNotifySubscribers ? "✓ Notify Subscribers" : "✕ Don't Notify"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pinterest Platform Options */}
+                  {selectedPlatforms.includes("pinterest") && (
+                    <div className="bg-red-50/70 border border-red-200 rounded-2xl p-4 space-y-3">
+                      <label className="text-xs font-black text-red-900 flex items-center gap-1.5">
+                        📌 Pinterest Pin Options
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-red-800">Board ID:</span>
+                          <input
+                            type="text"
+                            value={pinterestBoardId}
+                            onChange={(e) => setPinterestBoardId(e.target.value)}
+                            placeholder="default or Board ID"
+                            className="w-full bg-white border-2 border-red-200 focus:border-red-500 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-red-800">Pin Title:</span>
+                          <input
+                            type="text"
+                            value={pinterestPinTitle}
+                            onChange={(e) => setPinterestPinTitle(e.target.value)}
+                            placeholder="Pin Title"
+                            className="w-full bg-white border-2 border-red-200 focus:border-red-500 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold text-red-800">Destination Link URL:</span>
+                        <input
+                          type="url"
+                          value={pinterestDestinationLink}
+                          onChange={(e) => setPinterestDestinationLink(e.target.value)}
+                          placeholder="https://yourwebsite.com/product"
+                          className="w-full bg-white border-2 border-red-200 focus:border-red-500 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* LinkedIn Platform Options */}
+                  {selectedPlatforms.includes("linkedin") && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-3">
+                      <label className="text-xs font-black text-blue-900 flex items-center gap-1.5">
+                        💼 LinkedIn Options
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-blue-800">Post Visibility:</span>
+                          <select
+                            value={linkedinVisibility}
+                            onChange={(e) => setLinkedinVisibility(e.target.value)}
+                            className="w-full bg-white border-2 border-blue-200 focus:border-blue-500 rounded-xl px-3 py-2 text-xs font-black text-slate-900 outline-none"
+                          >
+                            <option value="PUBLIC">🌐 Anyone (Public)</option>
+                            <option value="CONNECTIONS">👥 Connections Only</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-blue-800">Attach Article Link:</span>
+                          <input
+                            type="url"
+                            value={linkedinArticleLink}
+                            onChange={(e) => setLinkedinArticleLink(e.target.value)}
+                            placeholder="https://blog.com/article"
+                            className="w-full bg-white border-2 border-blue-200 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none"
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
