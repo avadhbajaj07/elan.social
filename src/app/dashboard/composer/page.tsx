@@ -23,7 +23,7 @@ const PLATFORMS: Record<string, { icon: string; label: string; color: string; su
   pinterest: { icon: "📌", label: "Pinterest", color: "bg-red-50 text-red-600 border-red-200", supportsCarousel: false, supportsVideo: true, supportsStory: false, supportsThread: false },
 };
 
-type PostType = "single" | "carousel" | "video" | "story" | "text";
+type PostType = "single" | "carousel" | "pdf_doc" | "video" | "story" | "text";
 type ScheduleMode = "now" | "schedule" | "next_slot";
 
 // ─── Thread post item ────────────────────────────────────────────────────────
@@ -258,13 +258,14 @@ export default function PostComposerPage() {
           if (pinterestDestinationLink.trim()) payload.pinLink = pinterestDestinationLink.trim();
         }
 
-        // LinkedIn elements
+        // LinkedIn & PDF elements
+        if (linkedinPdfUrl.trim()) {
+          payload.mediaUrls = [linkedinPdfUrl.trim()];
+        }
+
         if (acc.platform === "linkedin") {
           payload.visibility = linkedinVisibility;
           if (linkedinArticleLink.trim()) payload.link = linkedinArticleLink.trim();
-          if (linkedinPdfUrl.trim()) {
-            payload.mediaUrls = [linkedinPdfUrl.trim()];
-          }
         }
 
         const res = await fetch("/api/posts", {
@@ -426,19 +427,25 @@ export default function PostComposerPage() {
               <label className="text-xs font-black text-slate-700 flex items-center gap-1">
                 <LayoutTemplate className="w-3.5 h-3.5 text-purple-500" /> Post Type
               </label>
-              <div className="grid grid-cols-5 gap-2">
-                {(["single", "carousel", "video", "story", "text"] as PostType[]).map(type => (
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                {(["single", "carousel", "pdf_doc", "video", "story", "text"] as PostType[]).map(type => (
                   <button key={type} type="button" onClick={() => setPostType(type)}
                     className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 text-xs font-black transition-all capitalize ${postType === type ? "border-purple-500 bg-purple-50 text-purple-800" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
                     {type === "single" && <ImageIcon className="w-4 h-4" />}
                     {type === "carousel" && <GalleryHorizontal className="w-4 h-4" />}
+                    {type === "pdf_doc" && <span className="text-base leading-none">📄</span>}
                     {type === "video" && <Film className="w-4 h-4" />}
                     {type === "story" && <Sparkles className="w-4 h-4 text-pink-500" />}
                     {type === "text" && <MessageSquare className="w-4 h-4" />}
-                    {type === "single" ? "Image" : type === "story" ? "Story 📸" : type}
+                    {type === "single" ? "Image" : type === "pdf_doc" ? "PDF Slider 📄" : type === "story" ? "Story 📸" : type}
                   </button>
                 ))}
               </div>
+              {postType === "pdf_doc" && (
+                <p className="text-[11px] bg-blue-50 border border-blue-200 text-blue-800 font-bold p-3 rounded-xl">
+                  📄 <strong>PDF Carousel Slider:</strong> Upload your multi-page PDF document below. Each PDF page becomes a swipeable slide in LinkedIn's native carousel player! (Recommended size: 1080×1350px / 4:5).
+                </p>
+              )}
               {postType === "carousel" && (
                 <div className="space-y-2">
                   <p className="text-[11px] bg-blue-50 border border-blue-200 text-blue-700 font-bold p-2.5 rounded-xl">
@@ -447,10 +454,10 @@ export default function PostComposerPage() {
                   {selectedPlatforms.includes("linkedin") && (
                     <div className="text-[11px] bg-amber-50 border-2 border-amber-300 text-amber-900 font-black p-3 rounded-2xl space-y-1">
                       <p className="flex items-center gap-1.5 text-xs text-amber-950">
-                        📄 <strong>LinkedIn Native Carousel Note:</strong>
+                        📄 <strong>LinkedIn Native Carousel Requirement:</strong>
                       </p>
                       <p className="font-medium text-[11px] leading-relaxed">
-                        On LinkedIn, uploading multiple images posts them as a grid gallery. To post a <strong>true swipeable carousel on LinkedIn</strong>, upload your PDF presentation using the <strong>📄 LinkedIn PDF Carousel Document Uploader</strong> below (Recommended aspect ratio: 1080×1350px / 4:5).
+                        On LinkedIn, uploading multiple images posts them as a grid gallery. To post a <strong>true swipeable carousel on LinkedIn</strong>, click <strong>PDF Slider 📄</strong> above or upload your PDF document below!
                       </p>
                     </div>
                   )}
@@ -520,8 +527,8 @@ export default function PostComposerPage() {
               </div>
             )}
 
-            {/* Carousel Manager */}
-            {postType === "carousel" && (
+            {/* Carousel & PDF Manager */}
+            {(postType === "carousel" || postType === "pdf_doc") && (
               <div className="space-y-4 bg-slate-50 border-2 border-slate-200 rounded-2xl p-4">
                 {/* LinkedIn PDF Carousel Document Uploader */}
                 <div className="bg-blue-50/80 border-2 border-blue-200 rounded-xl p-4 space-y-3">
