@@ -440,9 +440,21 @@ export default function PostComposerPage() {
                 ))}
               </div>
               {postType === "carousel" && (
-                <p className="text-[11px] bg-blue-50 border border-blue-200 text-blue-700 font-bold p-2.5 rounded-xl">
-                  📷 <strong>Carousel:</strong> Add 2–10 image URLs. They become swipeable slides on Instagram, Facebook & LinkedIn.
-                </p>
+                <div className="space-y-2">
+                  <p className="text-[11px] bg-blue-50 border border-blue-200 text-blue-700 font-bold p-2.5 rounded-xl">
+                    📷 <strong>Carousel (Instagram & Facebook):</strong> Add 2–10 image URLs for swipeable slides.
+                  </p>
+                  {selectedPlatforms.includes("linkedin") && (
+                    <div className="text-[11px] bg-amber-50 border-2 border-amber-300 text-amber-900 font-black p-3 rounded-2xl space-y-1">
+                      <p className="flex items-center gap-1.5 text-xs text-amber-950">
+                        📄 <strong>LinkedIn Native Carousel Note:</strong>
+                      </p>
+                      <p className="font-medium text-[11px] leading-relaxed">
+                        On LinkedIn, uploading multiple images posts them as a grid gallery. To post a <strong>true swipeable carousel on LinkedIn</strong>, upload your PDF presentation using the <strong>📄 LinkedIn PDF Carousel Document Uploader</strong> below (Recommended aspect ratio: 1080×1350px / 4:5).
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
               {postType === "video" && (
                 <p className="text-[11px] bg-purple-50 border border-purple-200 text-purple-700 font-bold p-2.5 rounded-xl">
