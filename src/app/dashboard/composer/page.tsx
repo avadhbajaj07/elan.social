@@ -79,6 +79,45 @@ export default function PostComposerPage() {
   // LinkedIn Platform Options
   const [linkedinVisibility, setLinkedinVisibility] = useState<string>("PUBLIC");
   const [linkedinArticleLink, setLinkedinArticleLink] = useState("");
+  const [linkedinPdfUrl, setLinkedinPdfUrl] = useState("");
+  const [linkedinPdfName, setLinkedinPdfName] = useState("");
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+
+  const handlePdfFileSelect = async (file: File) => {
+    if (!file) return;
+    setIsUploadingPdf(true);
+    setLinkedinPdfName(file.name);
+
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch("/api/cloudinary/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: base64,
+          folder: "linkedin-carousels-pdf",
+          resourceType: "raw",
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.url) {
+        setLinkedinPdfUrl(data.url);
+      } else {
+        alert(data.error || "Failed to upload PDF document.");
+      }
+    } catch (err: any) {
+      alert(err.message || "PDF upload error.");
+    } finally {
+      setIsUploadingPdf(false);
+    }
+  };
 
   // Scheduling
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("schedule");
@@ -223,6 +262,9 @@ export default function PostComposerPage() {
         if (acc.platform === "linkedin") {
           payload.visibility = linkedinVisibility;
           if (linkedinArticleLink.trim()) payload.link = linkedinArticleLink.trim();
+          if (linkedinPdfUrl.trim()) {
+            payload.mediaUrls = [linkedinPdfUrl.trim()];
+          }
         }
 
         const res = await fetch("/api/posts", {
@@ -898,6 +940,76 @@ export default function PostComposerPage() {
                             placeholder="https://blog.com/article"
                             className="w-full bg-white border-2 border-blue-200 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none"
                           />
+                        </div>
+                      </div>
+
+                      {/* PDF Carousel Document Uploader */}
+                      <div className="space-y-2 pt-2 border-t border-blue-200">
+                        <label className="text-xs font-black text-blue-950 flex items-center justify-between">
+                          <span>📄 LinkedIn PDF Carousel Document (Slider)</span>
+                          <span className="text-[10px] bg-blue-100 text-blue-800 font-extrabold px-2 py-0.5 rounded-full">
+                            PDF Pages = Carousel Slides
+                          </span>
+                        </label>
+
+                        <div className="bg-white border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-2xl p-4 text-center transition-colors">
+                          <input
+                            id="linkedin-pdf-input"
+                            type="file"
+                            accept="application/pdf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handlePdfFileSelect(file);
+                            }}
+                            className="hidden"
+                          />
+
+                          {isUploadingPdf ? (
+                            <div className="flex items-center justify-center gap-2 text-xs font-bold text-blue-700 py-3">
+                              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                              Uploading PDF document ({linkedinPdfName})...
+                            </div>
+                          ) : linkedinPdfUrl ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between bg-blue-50 p-3 rounded-xl border border-blue-200">
+                                <div className="flex items-center gap-2 truncate pr-2">
+                                  <span className="text-xl">📄</span>
+                                  <div className="text-left truncate">
+                                    <p className="text-xs font-black text-blue-950 truncate">{linkedinPdfName || "CarouselPresentation.pdf"}</p>
+                                    <p className="text-[10px] font-bold text-emerald-600">✓ Ready to publish as LinkedIn Slider Carousel</p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => { setLinkedinPdfUrl(""); setLinkedinPdfName(""); }}
+                                  className="bg-white text-red-600 border border-red-200 hover:bg-red-50 text-xs font-black px-2.5 py-1 rounded-lg transition-colors"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                              <input
+                                type="url"
+                                value={linkedinPdfUrl}
+                                onChange={(e) => setLinkedinPdfUrl(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-[11px] text-slate-700 outline-none"
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              onClick={() => document.getElementById("linkedin-pdf-input")?.click()}
+                              className="cursor-pointer space-y-1.5 py-2 group"
+                            >
+                              <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center mx-auto font-black text-lg group-hover:scale-110 transition-transform">
+                                📄
+                              </div>
+                              <p className="text-xs font-black text-blue-900">
+                                Click to Select & Upload PDF Document for LinkedIn Carousel
+                              </p>
+                              <p className="text-[10px] text-slate-500 font-bold">
+                                Upload your multi-page PDF presentation. LinkedIn will automatically render each page as a swipeable slide in its native document player!
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

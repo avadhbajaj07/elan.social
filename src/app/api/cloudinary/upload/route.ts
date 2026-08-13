@@ -53,7 +53,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+    const resourceType = body.resourceType || "auto";
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
     const formData = new FormData();
     formData.append("file", image);
     if (folder) formData.append("folder", folder);
