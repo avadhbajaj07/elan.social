@@ -61,7 +61,7 @@ export async function GET() {
 
     // Normalize accounts to our format
     // Blotato fields: { id, platform, username, fullname }
-    const accounts = rawAccounts.map((acc: any) => ({
+    const baseAccounts = rawAccounts.map((acc: any) => ({
       id: acc.id || acc.accountId,
       platform: (acc.platform || acc.type || "unknown").toLowerCase(),
       username: acc.username || acc.handle || acc.fullname || "Unknown",
@@ -70,6 +70,35 @@ export async function GET() {
       connected: acc.connected !== false, // default to true if field missing
       blotato_account_id: acc.id || acc.accountId,
     }));
+
+    // Auto-fetch subaccounts/pages for Facebook accounts
+    const accounts = await Promise.all(
+      baseAccounts.map(async (acc) => {
+        if (acc.platform === "facebook") {
+          try {
+            const subRes = await fetch(`${BLOTATO_BASE_URL}/users/me/accounts/${acc.id}/subaccounts`, {
+              headers: { "blotato-api-key": apiKey },
+              cache: "no-store",
+            });
+            if (subRes.ok) {
+              const subData = await subRes.json();
+              if (subData.items && subData.items.length > 0) {
+                return {
+                  ...acc,
+                  subaccounts: subData.items,
+                  defaultPageId: subData.items[0].id,
+                  defaultPageName: subData.items[0].name,
+                  username: acc.username && acc.username !== "Unknown" ? acc.username : subData.items[0].name,
+                };
+              }
+            }
+          } catch {
+            /* silent fallback */
+          }
+        }
+        return acc;
+      })
+    );
 
     // Sync to Supabase if admin client is available
     if (supabaseAdmin && accounts.length > 0) {

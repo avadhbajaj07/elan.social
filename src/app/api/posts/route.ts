@@ -107,6 +107,32 @@ export async function POST(request: Request) {
         };
         if (body.visibility) targetObj.visibility = body.visibility;
         if (body.link) targetObj.link = body.link;
+      } else if (accountPlatform === "facebook") {
+        targetObj = {
+          targetType: "facebook",
+        };
+
+        let pageIdToUse = body.pageId || body.facebookPageId;
+        if (!pageIdToUse) {
+          try {
+            const subRes = await fetch(`${BLOTATO_BASE_URL}/users/me/accounts/${accountId}/subaccounts`, {
+              headers: { "blotato-api-key": apiKey },
+              cache: "no-store",
+            });
+            if (subRes.ok) {
+              const subData = await subRes.json();
+              if (subData.items && subData.items.length > 0) {
+                pageIdToUse = subData.items[0].id;
+              }
+            }
+          } catch {
+            /* silent fallback */
+          }
+        }
+
+        if (pageIdToUse) {
+          targetObj.pageId = pageIdToUse;
+        }
       } else if (accountPlatform === "instagram") {
         targetObj = {
           targetType: "instagram",
