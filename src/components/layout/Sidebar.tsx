@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Loader2,
   FolderUp,
+  Zap,
 } from "lucide-react";
 import { ClientProfile } from "@/lib/mockData";
 
@@ -290,6 +291,22 @@ export default function Sidebar({ clients, selectedClient, onSelectClient }: Sid
             <div className="flex items-center gap-2">
               <FolderUp className="w-4 h-4 text-purple-600" />
               <span>Bulk Poster Scheduler</span>
+            </div>
+            <span className="text-[9px] bg-purple-200 text-purple-800 font-black px-1.5 py-0.5 rounded-full">
+              New
+            </span>
+          </Link>
+          <Link
+            href="/dashboard/automations"
+            className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all ${
+              pathname.startsWith("/dashboard/automations")
+                ? "bg-purple-100 text-purple-900 font-extrabold"
+                : "text-slate-700 hover:bg-slate-100"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-purple-600" />
+              <span>DM Automations</span>
             </div>
             <span className="text-[9px] bg-purple-200 text-purple-800 font-black px-1.5 py-0.5 rounded-full">
               New
