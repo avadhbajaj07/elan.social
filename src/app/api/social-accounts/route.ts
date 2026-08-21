@@ -71,10 +71,10 @@ export async function GET() {
       blotato_account_id: acc.id || acc.accountId,
     }));
 
-    // Auto-fetch subaccounts/pages for Facebook accounts
+    // Auto-fetch subaccounts/pages for Facebook and LinkedIn accounts
     const accounts = await Promise.all(
       baseAccounts.map(async (acc) => {
-        if (acc.platform === "facebook") {
+        if (acc.platform === "facebook" || acc.platform === "linkedin") {
           try {
             const subRes = await fetch(`${BLOTATO_BASE_URL}/users/me/accounts/${acc.id}/subaccounts`, {
               headers: { "blotato-api-key": apiKey },
@@ -83,12 +83,14 @@ export async function GET() {
             if (subRes.ok) {
               const subData = await subRes.json();
               if (subData.items && subData.items.length > 0) {
+                const primarySub = subData.items[0];
                 return {
                   ...acc,
                   subaccounts: subData.items,
-                  defaultPageId: subData.items[0].id,
-                  defaultPageName: subData.items[0].name,
-                  username: acc.username && acc.username !== "Unknown" ? acc.username : subData.items[0].name,
+                  defaultPageId: primarySub.id,
+                  defaultPageName: primarySub.name,
+                  username: primarySub.name || acc.username,
+                  account_name: primarySub.name || acc.account_name,
                 };
               }
             }
